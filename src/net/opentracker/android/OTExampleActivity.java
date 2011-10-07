@@ -79,16 +79,18 @@ public class OTExampleActivity extends Activity {
         // Returns the context of the Activity to access its resources
         appContext = this.getApplicationContext();
 
-        // initiate opentracker's logging service, with the context and
-        // application's name
-        OTLogService.onCreate(appContext, "test-app-name");
+        // Initiate opentracker's logging service, with the Context and
+        // your-registered-app-name
+        OTLogService.onCreate(appContext, "your-registered-app-name");
 
         // to test things real-time always send data directly to logging service
         // make sure to comment this out if you are not testing
         OTLogService.setDirectSend(true);
 
-        // record an event with the title "Activity started"
+        // Record an event with the title "Activity started", but you can call
+        // it anything you want
         OTLogService.sendEvent("Activity started");
+
         setContentView(R.layout.main);
     }
 
@@ -103,6 +105,9 @@ public class OTExampleActivity extends Activity {
     protected void onPause() {
         super.onPause();
         Log.v(TAG, "onPause()");
+
+        // Close the session and upload the events. The onPause method is
+        // guaranteed to be called in the life cycle of an Android App.
         OTLogService.onPause();
     }
 
@@ -124,8 +129,11 @@ public class OTExampleActivity extends Activity {
      */
     public void clickEventOnButton(View v) {
         Log.v(TAG, "clickEventOnButton()");
-        // RadioButton button1 = (RadioButton) findViewById(R.id.button1);
+
+        // Record an event with the title "button clickEventOnButton", but you
+        // can call it anything you want.
         OTLogService.sendEvent("button clickEventOnButton");
+
         Log.v(TAG, OTDataSockets.getAppVersion(appContext));
         Log.v(TAG, OTDataSockets.getIpAddress());
         Log.v(TAG, OTDataSockets.getScreenHeight(appContext));
@@ -142,7 +150,8 @@ public class OTExampleActivity extends Activity {
      */
     public void onClickCheckBox(View v) {
         Log.v(TAG, "clickEventOnButton()");
-        // RadioButton button1 = (RadioButton) findViewById(R.id.button1);
+        // Record an event with the title "button onClickCheckBox", but you
+        // can call it anything you want.
         OTLogService.sendEvent("button onClickCheckBox");
     }
 
