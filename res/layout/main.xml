@@ -1,11 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
+<LinearLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  android:orientation="vertical"
+  android:layout_width="fill_parent"
+  android:layout_height="fill_parent"
+  android:clickable="false"
+>
+  <TextView
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent" android:clickable="true" android:onClick="clickEventOnButton" android:id="@+id/checkbox1">
-<TextView  
-    android:layout_width="fill_parent" 
-    android:layout_height="wrap_content" android:text="@string/testing"/>
-<Button android:id="@+id/button1" android:text="@string/clickEvent" android:layout_width="wrap_content" android:layout_height="wrap_content" android:onClick="clickEventOnButton" android:clickable="true"></Button>
-<CheckBox android:text="CheckBox" android:id="@+id/checkBox1" android:layout_width="wrap_content" android:onClick="onClickCheckBox" android:layout_height="wrap_content"></CheckBox>
+    android:layout_height="wrap_content"
+    android:text="" />
+  <TextView
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:text="@string/title" />
+  <TextView
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:text="" />
+  <Button
+    android:id="@+id/button1"
+    android:text="@string/clickEvent"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:onClick="clickEventOnButton"
+    android:clickable="true"
+  ></Button>
+  <CheckBox
+    android:text="@string/clickCheckBox"
+    android:id="@+id/checkBox1"
+    android:layout_width="wrap_content"
+    android:onClick="onClickCheckBox"
+    android:layout_height="wrap_content"
+  ></CheckBox>
 </LinearLayout>
