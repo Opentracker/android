@@ -115,6 +115,10 @@ public class OTExampleActivity extends Activity {
         OTLogService.sendEvent("Session resuming");
     }
 
+    /**
+     * Called in the example android project to simulate a event when a button
+     * is pressed.
+     */
     public void clickEventOnButton(View v) {
         Log.v(TAG, "clickEventOnButton()");
         // RadioButton button1 = (RadioButton) findViewById(R.id.button1);
@@ -129,6 +133,10 @@ public class OTExampleActivity extends Activity {
         Log.v(TAG, OTDataSockets.getWifiInfo(appContext));
     }
 
+    /**
+     * Called in the example android project to simulate a event when a check
+     * box is pressed.
+     */
     public void onClickCheckBox(View v) {
         Log.v(TAG, "clickEventOnButton()");
         // RadioButton button1 = (RadioButton) findViewById(R.id.button1);
