@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="hello">Hello World, AndroidOpentracker!</string>
-    <string name="app_name">AndroidOpentracker</string>
-    <string name="testing">testing data from opentracker</string>
-    <string name="clickEvent">click here to create click event</string>
+    <string name="app_name">Opentracker\'s Android Behavior Tracking App</string>
+    <string name="title">Start testing, there are two choices:</string>
+    <string name="clickEvent">Click to send sample tracking data (event)</string>
+    <string name="clickCheckBox">Click to test tracking an event</string>
 </resources>
