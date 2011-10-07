@@ -80,6 +80,10 @@ public class OTExampleActivity extends Activity {
         // application's name
         OTLogService.onCreate(appContext, "test-app-name");
 
+        // to test things real-time always send data directly to logging service
+        // make sure to comment this out if you are not testing
+        OTLogService.setDirectSend(true);
+
         // record an event with the title "Activity started"
         OTLogService.sendEvent("Activity started");
         setContentView(R.layout.main);
