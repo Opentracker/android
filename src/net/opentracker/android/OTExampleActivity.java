@@ -19,6 +19,9 @@
  */
 package net.opentracker.android;
 
+// note that this example is in the package itself so we do not need to import
+// import net.opentracker.android;
+
 import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
