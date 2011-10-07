@@ -43,6 +43,8 @@ public class OTLogService {
 
     private static Boolean isSessionStarted = false;
 
+    private static Boolean directSend = false;
+
     private static OTFileUtils otFileUtil;
 
     private static final int sessionLapseTimeMs = 30 * 1000;
@@ -140,6 +142,22 @@ public class OTLogService {
         PrintWriter pw = new PrintWriter(sw);
         e.printStackTrace(pw);
         return (sw.toString());
+    }
+
+    /**
+     * Sets if the data is sent directly to the log service (directSend = true).
+     * The default behavior is to send the event data directly if the device is
+     * connected to the Internet via WiFi (larger bandwidth). If the device is
+     * not connected via WiFi the data will be sent to a file which is then sent
+     * to the log service at a later time. This helps save bandwidth and helps
+     * with network performance.
+     * 
+     * @param directSend
+     *            If log service should sent event data directly, indifferent of
+     *            the connection.
+     */
+    public static void setDirectSend(boolean directSend) {
+        OTLogService.directSend = directSend;
     }
 
     /**
@@ -543,8 +561,14 @@ public class OTLogService {
 
         // TODO: work out logic of appending data to file
         try {
-            appendDataToFile(keyValuePairsMerged);
-        } catch (IOException e) {
+            if (OTDataSockets.getNetwork(appContext).equalsIgnoreCase("wifi")) {
+                OTSend.send(keyValuePairsMerged);
+            } else if (directSend) {
+                OTSend.send(keyValuePairsMerged);
+            } else {
+                appendDataToFile(keyValuePairsMerged);
+            }
+        } catch (Exception e) {
             Log.i(TAG, "Exception while appending data to file: " + e);
 
             HashMap<String, String> logMap = new HashMap<String, String>();
