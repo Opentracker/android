@@ -515,7 +515,7 @@ public class OTLogService {
         HashMap<String, String> keyValuePairs = new HashMap<String, String>();
         keyValuePairs.put("si", appName);
         keyValuePairs.put("ti", event);
-        keyValuePairs.put("lc", "http://android.opentracker.net/" + appName
+        keyValuePairs.put("lc", "http://app.opentracker.net/" + appName
                 + "/" + event.replace('/', '.'));
         try {
             keyValuePairs.put("otui", otFileUtil.readFile("otui"));
