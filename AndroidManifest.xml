@@ -9,23 +9,23 @@
     <!--
     Allows an application to open network sockets.
     -->
-    <uses-permission android:name="android.permission.INTERNET"></uses-permission>
+    <uses-permission android:name="android.permission.INTERNET" ></uses-permission>
 
     <!--
     Allows an application to access fine (e.g., GPS) location
     -->
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"></uses-permission>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" ></uses-permission>
 
     <!--
     Allows an applications to access information about networks: needed for 
     methods OTDataSockets.getNetworkType() and OTDataSockets.getNetwork();
     -->
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" ></uses-permission>
 
     <!--
     Allows an applications to access information about Wi-Fi networks
     -->
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" ></uses-permission>
 
     <application android:icon="@drawable/icon" android:label="@string/app_name">
         <activity android:name=".OTExampleActivity"
