@@ -71,7 +71,7 @@ public class OTSend {
     private static final String TAG = OTSend.class.getName();
 
     private static final String DEFAULT_UPLOAD_SERVER =
-            "http://upload.opentracker.net/api/upload/upload.jsp";
+            "http://upload.opentracker.net/upload/upload.jsp";
 
     private static HttpURLConnection conn = null;
 
