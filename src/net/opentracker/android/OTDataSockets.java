@@ -135,6 +135,7 @@ public class OTDataSockets {
     // return dm.widthPixels + " x " + dm.heightPixels;
     // }
 
+    //TODO: return wifi, mobile or airplane.
     public static String getNetworkType(final Context appContext) {
         Log.v(TAG, "getNetworkType()");
         try {
@@ -152,13 +153,14 @@ public class OTDataSockets {
         return "unknown";
     }
 
+    //TODO: return wifi, mobile or airplane.
     public static String getNetwork(final Context appContext) {
         Log.v(TAG, "getNetwork()");
         try {
-            TelephonyManager teleMan =
-                    (TelephonyManager) appContext
-                            .getSystemService(Context.TELEPHONY_SERVICE);
-            int networkType = teleMan.getNetworkType();
+//            TelephonyManager teleMan =
+//                    (TelephonyManager) appContext
+//                            .getSystemService(Context.TELEPHONY_SERVICE);
+//            int networkType = teleMan.getNetworkType();
             ConnectivityManager connectivityManager =
                     (ConnectivityManager) appContext
                             .getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -167,22 +169,22 @@ public class OTDataSockets {
             if (activeNetworkInfo.getType() == ConnectivityManager.TYPE_WIFI) {
                 return "wifi";
             }
-            switch (networkType) {
-            case TelephonyManager.NETWORK_TYPE_CDMA:
-                return "cdma";
-            case TelephonyManager.NETWORK_TYPE_EDGE:
-                return "edge";
-            case TelephonyManager.NETWORK_TYPE_UMTS:
-                return "umts";
-            case TelephonyManager.NETWORK_TYPE_HSDPA:
-                return "hsdpa";
-            default:
-                return "unknown";
-            }
+//            switch (networkType) {
+//            case TelephonyManager.NETWORK_TYPE_CDMA:
+//                return "cdma";
+//            case TelephonyManager.NETWORK_TYPE_EDGE:
+//                return "edge";
+//            case TelephonyManager.NETWORK_TYPE_UMTS:
+//                return "umts";
+//            case TelephonyManager.NETWORK_TYPE_HSDPA:
+//                return "hsdpa";
+//            default:
+//                return "unknown";
+//            }
         } catch (SecurityException ise) {
             Log.w(TAG, ise);
         }
-        return "unknown";
+        return "no network";
     }
 
     /**

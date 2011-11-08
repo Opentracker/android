@@ -43,6 +43,7 @@ public class OTLogService {
 
     private static Boolean isSessionStarted = false;
 
+    // used for testing
     private static Boolean directSend = false;
 
     private static OTFileUtils otFileUtil;
@@ -146,6 +147,9 @@ public class OTLogService {
 
     /**
      * Sets if the data is sent directly to the log service (directSend = true).
+     * 
+     * This overrides the default behavior for testing purposes.
+     * 
      * The default behavior is to send the event data directly if the device is
      * connected to the Internet via WiFi (larger bandwidth). If the device is
      * not connected via WiFi the data will be sent to a file which is then sent
