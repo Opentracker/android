@@ -23,6 +23,7 @@ import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.Enumeration;
+import java.util.HashMap;
 
 import android.content.Context;
 import android.content.pm.PackageManager;
@@ -135,32 +136,46 @@ public class OTDataSockets {
     // return dm.widthPixels + " x " + dm.heightPixels;
     // }
 
-    //TODO: return wifi, mobile or airplane.
+    // TODO: return wifi, mobile or airplane.
+    @SuppressWarnings("unchecked")
+    private static HashMap cacheType = new HashMap();
+
+    private static final long EXPIRE_MS = 1000l * 60l;
+
+    @SuppressWarnings("unchecked")
     public static String getNetworkType(final Context appContext) {
         Log.v(TAG, "getNetworkType()");
+        if (cacheType.get("last modified time") != null
+                && ((Long) cacheType.get("last modified time")) > System
+                        .currentTimeMillis()
+                        - EXPIRE_MS) {
+            return (String) cacheType.get("networkType");
+        }
         try {
-
             ConnectivityManager connectivityManager =
                     (ConnectivityManager) appContext
                             .getSystemService(Context.CONNECTIVITY_SERVICE);
             NetworkInfo activeNetworkInfo =
                     connectivityManager.getActiveNetworkInfo();
-            return activeNetworkInfo.getTypeName();
-
+            cacheType.put("networkType", activeNetworkInfo.getTypeName());
+            cacheType.put("last modified time", System.currentTimeMillis());
+            return (String) cacheType.get("networkType");
         } catch (SecurityException ise) {
             Log.w(TAG, ise);
         }
-        return "unknown";
+        cacheType.put("networkType", "no network");
+        cacheType.put("last modified time", System.currentTimeMillis());
+        return (String) cacheType.get("networkType");
     }
 
-    //TODO: return wifi, mobile or airplane.
+    // TODO: return wifi, mobile or airplane.
     public static String getNetwork(final Context appContext) {
         Log.v(TAG, "getNetwork()");
         try {
-//            TelephonyManager teleMan =
-//                    (TelephonyManager) appContext
-//                            .getSystemService(Context.TELEPHONY_SERVICE);
-//            int networkType = teleMan.getNetworkType();
+            // TelephonyManager teleMan =
+            // (TelephonyManager) appContext
+            // .getSystemService(Context.TELEPHONY_SERVICE);
+            // int networkType = teleMan.getNetworkType();
             ConnectivityManager connectivityManager =
                     (ConnectivityManager) appContext
                             .getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -169,18 +184,18 @@ public class OTDataSockets {
             if (activeNetworkInfo.getType() == ConnectivityManager.TYPE_WIFI) {
                 return "wifi";
             }
-//            switch (networkType) {
-//            case TelephonyManager.NETWORK_TYPE_CDMA:
-//                return "cdma";
-//            case TelephonyManager.NETWORK_TYPE_EDGE:
-//                return "edge";
-//            case TelephonyManager.NETWORK_TYPE_UMTS:
-//                return "umts";
-//            case TelephonyManager.NETWORK_TYPE_HSDPA:
-//                return "hsdpa";
-//            default:
-//                return "unknown";
-//            }
+            // switch (networkType) {
+            // case TelephonyManager.NETWORK_TYPE_CDMA:
+            // return "cdma";
+            // case TelephonyManager.NETWORK_TYPE_EDGE:
+            // return "edge";
+            // case TelephonyManager.NETWORK_TYPE_UMTS:
+            // return "umts";
+            // case TelephonyManager.NETWORK_TYPE_HSDPA:
+            // return "hsdpa";
+            // default:
+            // return "unknown";
+            // }
         } catch (SecurityException ise) {
             Log.w(TAG, ise);
         }
