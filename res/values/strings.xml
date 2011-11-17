@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Opentracker\'s Android Behavior Tracking App</string>
-    <string name="title">Start testing, there are two choices:</string>
-    <string name="clickEvent">Click to send sample tracking data (event)</string>
-    <string name="clickCheckBox">Click to test tracking an event</string>
+    <string name="title">Start testing, try tracking a tag:</string>
+    <string name="clickEvent">Send tag</string>
+    <string name="clickCheckBox">Click to generate a tracking event</string>
+    <string name="clickSilde">Move slider to generate a tracking event:</string>
 </resources>

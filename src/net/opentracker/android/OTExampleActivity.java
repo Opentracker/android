@@ -54,6 +54,8 @@ import android.view.View;
  */
 public class OTExampleActivity extends Activity {
 
+    private static final String TAG = OTExampleActivity.class.getName();
+
     /**
      * A Context is Android's interface to global information about an
      * application environment. This is an abstract class whose implementation
@@ -64,7 +66,37 @@ public class OTExampleActivity extends Activity {
      */
     public Context appContext;
 
-    private static final String TAG = OTExampleActivity.class.getName();
+    /**
+     * Called in the example android project to simulate a event when a button
+     * is pressed.
+     */
+    public void clickEventOnButton(View v) {
+        Log.v(TAG, "clickEventOnButton()");
+
+        // Record an event with the title "button clickEventOnButton", but you
+        // can call it anything you want.
+        OTLogService.sendEvent("button clickEventOnButton");
+
+        Log.v(TAG, OTDataSockets.getAppVersion(appContext));
+        Log.v(TAG, OTDataSockets.getIpAddress());
+        Log.v(TAG, OTDataSockets.getScreenHeight(appContext));
+        Log.v(TAG, OTDataSockets.getScreenWidth(appContext));
+        Log.v(TAG, OTDataSockets.getUserAgent(appContext));
+        Log.v(TAG, OTDataSockets.getNetworkType(appContext));
+//        Log.v(TAG, OTDataSockets.getLastCoordinates(appContext));
+        Log.v(TAG, OTDataSockets.getWifiInfo(appContext));
+    }
+
+    /**
+     * Called in the example android project to simulate a event when a check
+     * box is pressed.
+     */
+    public void onClickCheckBox(View v) {
+        Log.v(TAG, "clickEventOnButton()");
+        // Record an event with the title "button onClickCheckBox", but you
+        // can call it anything you want.
+        OTLogService.sendEvent("button onClickCheckBox");
+    }
 
     /**
      * Called when Android's activity is starting. This is where most
@@ -89,7 +121,7 @@ public class OTExampleActivity extends Activity {
 
         // Record an event with the title "Activity started", but you can call
         // it anything you want
-        OTLogService.sendEvent("Activity started");
+        OTLogService.sendEvent("onCreate() called");
 
         setContentView(R.layout.main);
     }
@@ -105,6 +137,7 @@ public class OTExampleActivity extends Activity {
     protected void onPause() {
         super.onPause();
         Log.v(TAG, "onPause()");
+        OTLogService.sendEvent("onPause() called");
 
         // Close the session and upload the events. The onPause method is
         // guaranteed to be called in the life cycle of an Android App.
@@ -120,39 +153,7 @@ public class OTExampleActivity extends Activity {
     protected void onResume() {
         super.onResume();
         Log.v(TAG, "onResume()");
-        OTLogService.sendEvent("Session resuming");
-    }
-
-    /**
-     * Called in the example android project to simulate a event when a button
-     * is pressed.
-     */
-    public void clickEventOnButton(View v) {
-        Log.v(TAG, "clickEventOnButton()");
-
-        // Record an event with the title "button clickEventOnButton", but you
-        // can call it anything you want.
-        OTLogService.sendEvent("button clickEventOnButton");
-
-        Log.v(TAG, OTDataSockets.getAppVersion(appContext));
-        Log.v(TAG, OTDataSockets.getIpAddress());
-        Log.v(TAG, OTDataSockets.getScreenHeight(appContext));
-        Log.v(TAG, OTDataSockets.getScreenWidth(appContext));
-        Log.v(TAG, OTDataSockets.getUserAgent(appContext));
-        Log.v(TAG, OTDataSockets.getNetworkType(appContext));
-        Log.v(TAG, OTDataSockets.getNetwork(appContext));
-        Log.v(TAG, OTDataSockets.getWifiInfo(appContext));
-    }
-
-    /**
-     * Called in the example android project to simulate a event when a check
-     * box is pressed.
-     */
-    public void onClickCheckBox(View v) {
-        Log.v(TAG, "clickEventOnButton()");
-        // Record an event with the title "button onClickCheckBox", but you
-        // can call it anything you want.
-        OTLogService.sendEvent("button onClickCheckBox");
+        OTLogService.sendEvent("onResume() called");
     }
 
 }

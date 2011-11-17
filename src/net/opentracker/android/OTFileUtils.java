@@ -44,17 +44,17 @@ import android.util.Log;
  */
 public class OTFileUtils {
 
-    private static final String TAG = OTFileUtils.class.getName();
-
     private static final String LINE_SEPARATOR =
             System.getProperty("line.separator");
 
-    private Context appContext;
+    private static final String TAG = OTFileUtils.class.getName();
 
     /*
      * OTUpload has file to be uploaded
      */
     public final static String UPLOAD_PATH = "/OTUpload/";
+
+    private final Context appContext;
 
     /**
      * Holds session state variables otui and ots
@@ -102,7 +102,7 @@ public class OTFileUtils {
                 writer.close();
             } catch (IOException e) {
                 Log.e(TAG, "Write has failed: " + e.getMessage());
-                throw new IOException(e);
+                throw new IOException();
             }
             return;// success
         }
@@ -137,7 +137,14 @@ public class OTFileUtils {
             String gzipFile = file + ".gz";
             String gzipFileName = fileName + ".gz";
 
-            FileOutputStream fos = new FileOutputStream(gzipFile);
+            FileOutputStream fos;
+            try {
+                fos = new FileOutputStream(gzipFile);
+            } catch (FileNotFoundException fnfe) {
+                // No file, don't need to do anything
+                Log.d(TAG, "File not found, not doing anything.");
+                return;
+            }
 
             Log.i(TAG, "Creating gzip file named: " + gzipFile);
             GZIPOutputStream gzos = new GZIPOutputStream(fos);
@@ -160,7 +167,8 @@ public class OTFileUtils {
                     + "[bytes] from  " + file.length() + "[bytes]");
 
         } catch (IOException e) {
-            throw new IOException(e);
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
     }
 
@@ -177,6 +185,10 @@ public class OTFileUtils {
         Log.v(TAG, "emptyFile()");
         removeFile(pathName, fileName);
         makeFile(pathName, fileName);
+    }
+
+    public String getInternalPath(String pathName) {
+        return appContext.getFilesDir() + pathName;
     }
 
     /**
@@ -203,6 +215,8 @@ public class OTFileUtils {
                 fileNameDataPair.put(filename, fileData);
             }
         }
+        Log.v(TAG, "getSessionStateDataPairs(): " + fileNameDataPair);
+
         return fileNameDataPair;
     }
 
@@ -232,7 +246,7 @@ public class OTFileUtils {
      *             If a file could not be created
      */
     public void makeFile(String pathName, String fileName) throws IOException {
-        Log.v(TAG, "makeFile()");
+        Log.v(TAG, "makeFile(String pathName, String fileName)");
 
         if (pathName == null || fileName == null) {
             Log.e(TAG, "Unable to make, get or create file: " + fileName
@@ -264,7 +278,7 @@ public class OTFileUtils {
         } catch (IOException e) {
             Log.e(TAG, "Unable to make, get or create file: " + fileName
                     + " with pathName: " + pathName);
-            throw new IOException(e);
+            throw new IOException();
         }
 
     }
@@ -278,7 +292,7 @@ public class OTFileUtils {
      * @throws IOException
      */
     public String readFile(String fileName) throws IOException {
-        Log.v(TAG, "readFile()");
+        Log.v(TAG, "readFile(String fileName)");
         return readFile(sessionStateDirectory, fileName);
     }
 
@@ -294,7 +308,7 @@ public class OTFileUtils {
      * @throws IOException
      */
     public String readFile(String pathName, String fileName) throws IOException {
-        Log.v(TAG, "readFile()");
+        Log.v(TAG, "readFile(String pathName, String fileName)");
 
         if (pathName == null || fileName == null) {
             Log.e(TAG, "Unable to make, get or create file: " + fileName
@@ -328,11 +342,11 @@ public class OTFileUtils {
             return content.toString().replaceAll("\0", "").trim();
 
         } catch (FileNotFoundException e) {
-            Log.w(TAG, "File not found: " + e.getMessage());
+            // Log.w(TAG, "File not found: " + e.getMessage());
             throw new FileNotFoundException();
         } catch (IOException e) {
             Log.w(TAG, "IO Exception: " + e.getMessage());
-            throw new IOException(e);
+            throw new IOException();
         }
     }
 
@@ -350,7 +364,7 @@ public class OTFileUtils {
      */
     public String[] readFileLines(String pathName, String fileName)
             throws IOException {
-        Log.v(TAG, "readFileLines()");
+        Log.v(TAG, "readFileLines(String pathName, String fileName)");
 
         if (pathName == null || fileName == null) {
             Log.e(TAG, "Unable to make, get or create file: " + fileName
@@ -378,7 +392,7 @@ public class OTFileUtils {
             throw new FileNotFoundException();
         } catch (IOException e) {
             Log.w(TAG, "IO Exception: " + e.getMessage());
-            throw new IOException(e);
+            throw new IOException();
         }
         Log.i(TAG, "line:" + fileLines);
         String[] arrayLines = new String[fileLines.size()];
@@ -428,7 +442,7 @@ public class OTFileUtils {
      */
     public void writeFile(String fileName, String writeString)
             throws IOException {
-        Log.v(TAG, "writeFile()");
+        Log.v(TAG, "writeFile(String fileName, String writeString)");
         writeFile(sessionStateDirectory, fileName, writeString);
     }
 
@@ -446,7 +460,9 @@ public class OTFileUtils {
      */
     public void writeFile(String pathName, String fileName, String writeString)
             throws IOException {
-        Log.v(TAG, "writeFile()");
+        Log
+                .v(TAG,
+                        "writeFile(String pathName, String fileName, String writeString)");
 
         if (pathName == null || fileName == null || writeString == null) {
             Log.e(TAG, "Unable to make, get or create file: " + fileName
@@ -466,7 +482,7 @@ public class OTFileUtils {
                 writer.close();
             } catch (IOException e) {
                 Log.e(TAG, "Write is failed: " + e.getMessage());
-                throw new IOException(e);
+                throw new IOException();
             }
             return;
         }

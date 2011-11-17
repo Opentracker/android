@@ -66,14 +66,18 @@ import android.util.Log;
  */
 public class OTSend {
 
-    private static final String DEFAULT_LOG_URL = "http://log.opentracker.net/";
+    private static final String boundary = "*****";
 
-    private static final String TAG = OTSend.class.getName();
+    private static byte[] buffer;
+
+    private static int bytesRead, bytesAvailable, bufferSize;
+
+    private static HttpURLConnection conn = null;
+
+    private static final String DEFAULT_LOG_URL = "http://log.opentracker.net/";
 
     private static final String DEFAULT_UPLOAD_SERVER =
             "http://upload.opentracker.net/upload/upload.jsp";
-
-    private static HttpURLConnection conn = null;
 
     private static DataOutputStream dos = null;
 
@@ -81,17 +85,115 @@ public class OTSend {
 
     private static final String lineEnd = "\r\n";
 
-    private static final String twoHyphens = "--";
-
-    private static final String boundary = "*****";
-
-    private static int bytesRead, bytesAvailable, bufferSize;
-
-    private static byte[] buffer;
-
     private static final int maxBufferSize = 1 * 1024 * 1024;
 
-    private OTSend() {
+    private static final String TAG = OTSend.class.getName();
+
+    private static final String twoHyphens = "--";
+
+    /**
+     * getResponseBody function gives out the HTTP POST data from the given
+     * httpResponse output: data from the http as string input : httpEntity type
+     * 
+     * based on:
+     * http://thinkandroid.wordpress.com/2009/12/30/getting-response-body
+     * -of-httpresponse/
+     */
+    private static String getResponseBody(final HttpEntity entity)
+            throws IOException, ParseException {
+        Log.v(TAG, "getResponseBody(final HttpEntity entity)");
+
+        if (entity == null) {
+            throw new IllegalArgumentException("HTTP entity may not be null");
+        }
+        InputStream instream = entity.getContent();
+        if (instream == null) {
+            return "";
+        }
+        if (entity.getContentLength() > Integer.MAX_VALUE) {
+            throw new IllegalArgumentException(
+                    "HTTP entity too large to be buffered in memory");
+        }
+        String charset = EntityUtils.getContentCharSet(entity);
+        if (charset == null) {
+            charset = HTTP.DEFAULT_CONTENT_CHARSET;
+        }
+        Reader reader = new InputStreamReader(instream, charset);
+        StringBuilder buffer = new StringBuilder();
+        try {
+            char[] tmp = new char[1024];
+            int l;
+            while ((l = reader.read(tmp)) != -1) {
+                buffer.append(tmp, 0, l);
+            }
+        } finally {
+            reader.close();
+        }
+        return buffer.toString();
+    }
+
+    /**
+     * Sends the key value pairs to Opentracker's logging/ analytics engines via
+     * HTTP POST requests.
+     * 
+     * Based on sending key value pairs documentated at:
+     * http://api.opentracker.net/api/inserts/insert_event.jsp
+     * 
+     * @param keyValuePairs
+     *            the key value pairs (plain text utf-8 strings) to send to the
+     *            logging service.
+     * 
+     * @return the response as string, null if an exception is caught
+     */
+    protected static String send(HashMap<String, String> keyValuePairs) {
+        Log.v(TAG, "send(HashMap<String, String> keyValuePairs)");
+
+        // http://www.wikihow.com/Execute-HTTP-POST-Requests-in-Android
+        // http://hc.apache.org/httpclient-3.x/tutorial.html
+        HttpClient client = new DefaultHttpClient();
+
+        HttpPost post = new HttpPost(DEFAULT_LOG_URL);
+
+        Iterator<Entry<String, String>> it =
+                keyValuePairs.entrySet().iterator();
+
+        List<NameValuePair> pairs = new ArrayList<NameValuePair>();
+        while (it.hasNext()) {
+
+            Map.Entry<String, String> pair =
+                    (Map.Entry<String, String>) it.next();
+            pairs.add(new BasicNameValuePair(pair.getKey(), pair.getValue()));
+            Log.v(TAG, pair.getKey() + " = " + pair.getValue());
+
+        }
+
+        String responseText = null;
+        try {
+
+            post.setEntity(new UrlEncodedFormEntity(pairs));
+            HttpResponse response = client.execute(post);
+            HttpEntity entity = response.getEntity();
+
+            // http://hc.apache.org/httpclient-3.x/tutorial.html
+            // It is vital that the response body is always read regardless of
+            // the status returned by the server.
+            responseText = getResponseBody(entity);
+
+            Log.v(TAG, "Success url:" + post.getURI());
+            Log.v(TAG, "Success url:" + pairs);
+            return responseText;
+
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+            Log.e(TAG, "Failed:" + e);
+        } catch (IOException e) {
+            e.printStackTrace();
+            Log.e(TAG, "Failed:" + e);
+        } catch (ParseException e) {
+            e.printStackTrace();
+            Log.e(TAG, "Failed:" + e);
+        }
+        return responseText;
     }
 
     /**
@@ -103,9 +205,9 @@ public class OTSend {
      * @param fileName
      *            The file name to append to
      */
-    public static void uploadFile(String pathName, String fileName) {
-        Log.v(TAG, "uploadFile()");
-        uploadFile(DEFAULT_UPLOAD_SERVER, pathName, fileName);
+    protected static boolean uploadFile(String pathName, String fileName) {
+        Log.v(TAG, "uploadFile(String pathName, String fileName)");
+        return uploadFile(DEFAULT_UPLOAD_SERVER, pathName, fileName);
     }
 
     /**
@@ -113,20 +215,21 @@ public class OTSend {
      * 
      * @param uploadServer
      *            The server to upload the file to
-     * @param pathName
+     * @param internalPathName
      *            The path to use taking the apps context into account
      * @param fileName
      *            The file name to append to
      */
-    public static void uploadFile(String uploadServer, String pathName,
-            String fileName) {
-        Log.v(TAG, "uploadFile()");
+    private static boolean uploadFile(String uploadServer,
+            String internalPathName, String fileName) {
+        Log.v(TAG, "uploadFile(uploadServer, pathName, fileName)");
 
         String randomFileName = UUID.randomUUID() + ".gz";
+
         try {
             // ------------------ CLIENT REQUEST
             FileInputStream fileInputStream =
-                    new FileInputStream(new File(pathName + fileName));
+                    new FileInputStream(new File(internalPathName + fileName));
 
             // Open a URL connection to the Servlet
             URL url = new URL(uploadServer);
@@ -184,9 +287,10 @@ public class OTSend {
 
         } catch (MalformedURLException ex) {
             Log.e(TAG, "From ServletCom CLIENT REQUEST: " + ex);
-
+            return false;
         } catch (IOException ioe) {
             Log.e(TAG, "From ServletCom CLIENT REQUEST: " + ioe);
+            return false;
         }
 
         // ------------------ read the SERVER RESPONSE
@@ -197,148 +301,16 @@ public class OTSend {
                 Log.v(TAG, "Server response: " + str);
             }
             inStream.close();
+            return true;
 
         } catch (IOException ioex) {
             Log.e(TAG, "Server response: " + ioex);
+            return false;
         }
 
     }
 
-    /**
-     * Sends the key value pairs to Opentracker's logging/ analytics engines via
-     * HTTP POST requests.
-     * 
-     * Based on sending key value pairs documentated at:
-     * http://api.opentracker.net/api/inserts/insert_event.jsp
-     * 
-     * @param keyValuePairs
-     *            the key value pairs (plain text utf-8 strings) to send to the
-     *            logging service.
-     * 
-     * @return the response as string, null if an exception is caught
-     */
-    public static String send(HashMap<String, String> keyValuePairs) {
-        Log.v(TAG, "send()");
-
-        // http://www.wikihow.com/Execute-HTTP-POST-Requests-in-Android
-        // http://hc.apache.org/httpclient-3.x/tutorial.html
-        HttpClient client = new DefaultHttpClient();
-
-        HttpPost post = new HttpPost(DEFAULT_LOG_URL);
-
-        Iterator<Entry<String, String>> it =
-                keyValuePairs.entrySet().iterator();
-
-        List<NameValuePair> pairs = new ArrayList<NameValuePair>();
-        while (it.hasNext()) {
-
-            Map.Entry<String, String> pair =
-                    (Map.Entry<String, String>) it.next();
-            pairs.add(new BasicNameValuePair(pair.getKey(), pair.getValue()));
-            Log.v(TAG, pair.getKey() + " = " + pair.getValue());
-
-        }
-
-        String responseText = null;
-        try {
-
-            post.setEntity(new UrlEncodedFormEntity(pairs));
-            HttpResponse response = client.execute(post);
-            HttpEntity entity = response.getEntity();
-
-            // http://hc.apache.org/httpclient-3.x/tutorial.html
-            // It is vital that the response body is always read regardless of
-            // the status returned by the server.
-            responseText = getResponseBody(entity);
-
-            Log.v(TAG, "Success url:" + post.toString());
-            return responseText;
-
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-            Log.e(TAG, "Failed:" + e);
-        } catch (IOException e) {
-            e.printStackTrace();
-            Log.e(TAG, "Failed:" + e);
-        } catch (ParseException e) {
-            e.printStackTrace();
-            Log.e(TAG, "Failed:" + e);
-        }
-        return responseText;
-    }
-
-    /**
-     * Sends a post request with the url via HTTP POST requests.
-     * 
-     * @return the response as string, null if an exception is caught
-     */
-    private static String send(String url) {
-        Log.v(TAG, "send()");
-
-        HttpClient client = new DefaultHttpClient();
-        Log.i(TAG, "url being read:" + url);
-        HttpPost post = new HttpPost(url);
-        // post.setEntity(url);
-        String responseText = null;
-        try {
-            HttpResponse response = client.execute(post);
-            HttpEntity entity = null;
-            entity = response.getEntity();
-            responseText = getResponseBody(entity);
-            Log.v(TAG, "the url:" + post.toString());
-            Log.v(TAG, "Response after sending data:" + responseText);
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-            Log.e(TAG, "Failed:" + e);
-        } catch (IOException e) {
-            e.printStackTrace();
-            Log.e(TAG, "Failed:" + e);
-        } catch (ParseException e) {
-            e.printStackTrace();
-            Log.e(TAG, "Failed:" + e);
-        }
-        return responseText;
-    }
-
-    /**
-     * getResponseBody function gives out the HTTP POST data from the given
-     * httpResponse output: data from the http as string input : httpEntity type
-     * 
-     * based on:
-     * http://thinkandroid.wordpress.com/2009/12/30/getting-response-body
-     * -of-httpresponse/
-     */
-    private static String getResponseBody(final HttpEntity entity)
-            throws IOException, ParseException {
-        Log.v(TAG, "getResponseBody()");
-
-        if (entity == null) {
-            throw new IllegalArgumentException("HTTP entity may not be null");
-        }
-        InputStream instream = entity.getContent();
-        if (instream == null) {
-            return "";
-        }
-        if (entity.getContentLength() > Integer.MAX_VALUE) {
-            throw new IllegalArgumentException(
-                    "HTTP entity too large to be buffered in memory");
-        }
-        String charset = EntityUtils.getContentCharSet(entity);
-        if (charset == null) {
-            charset = HTTP.DEFAULT_CONTENT_CHARSET;
-        }
-        Reader reader = new InputStreamReader(instream, charset);
-        StringBuilder buffer = new StringBuilder();
-        try {
-            char[] tmp = new char[1024];
-            int l;
-            while ((l = reader.read(tmp)) != -1) {
-                buffer.append(tmp, 0, l);
-            }
-        } finally {
-            reader.close();
-        }
-        return buffer.toString();
+    private OTSend() {
     }
 
 }

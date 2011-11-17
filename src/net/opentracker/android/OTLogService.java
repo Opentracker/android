@@ -20,14 +20,17 @@
 
 package net.opentracker.android;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URLEncoder;
+import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
 
 import android.content.Context;
+import android.os.Handler;
 import android.util.Log;
 
 /**
@@ -37,14 +40,19 @@ import android.util.Log;
  */
 public class OTLogService {
 
+    private static final String address = "http://log.opentracker.net/";
+
     private static Context appContext;
 
     private static String appName;
 
-    private static Boolean isSessionStarted = false;
-
     // used for testing
     private static Boolean directSend = false;
+
+    // TODO make threading more reliable
+    private static Handler handler = new Handler();
+
+    private static Boolean isSessionStarted = false;
 
     private static OTFileUtils otFileUtil;
 
@@ -67,9 +75,7 @@ public class OTLogService {
         // HttpPost post = new HttpPost(address);
         String urlQuery = "";
 
-        String address = "http://log.opentracker.net/";
-
-        keyValuePairs.put("t", "" + System.currentTimeMillis());
+        keyValuePairs.put("t_ms", "" + System.currentTimeMillis());
 
         for (Map.Entry<String, String> entry : keyValuePairs.entrySet()) {
             String key = entry.getKey();
@@ -109,6 +115,52 @@ public class OTLogService {
         }
     }
 
+    private static void compressAndUploadData() {
+
+        Log.v(TAG, "compressAndUploadData()");
+        /*
+         * String[] fileContents = otFileUtil.readFileByLine("OTDir",
+         * "fileToSend"); for (int i = 0; i < fileContents.length; i++)
+         * OTSend.send(fileContents[i]);
+         */
+        // String[] fileContents;
+        try {
+            // fileContents = otFileUtil.readFileLines("OTDir", "fileToSend");
+            // Log.i(TAG, "Http requests in the file: " + fileContents.length);
+
+            otFileUtil.compressFile(OTFileUtils.UPLOAD_PATH, "fileToSend");
+
+            // HashMap<String, String> map = new HashMap<String, String>();
+            // map.put("zip", otFileUtil.readFile(OTFileUtils.UPLOAD_PATH,
+            // "fileToSend.gz"));
+
+            long time1 = System.currentTimeMillis();
+            boolean success =
+                    OTSend.uploadFile(otFileUtil
+                            .getInternalPath(OTFileUtils.UPLOAD_PATH),
+                            "fileToSend.gz");
+
+            long time2 = System.currentTimeMillis();
+            Log.i(TAG, "Time taken to response:" + (time2 - time1));
+            if (success) {
+                otFileUtil.removeFile(OTFileUtils.UPLOAD_PATH, "fileToSend.gz");
+                otFileUtil.emptyFile(OTFileUtils.UPLOAD_PATH, "fileToSend");
+                Log.i(TAG, "cleared file");
+            } else {
+                otFileUtil.removeFile(OTFileUtils.UPLOAD_PATH, "fileToSend.gz");
+                Log.i(TAG, "File did not empty!");
+            }
+        } catch (FileNotFoundException fnfe) {
+            // nothing to do
+            Log.i(TAG, "File not found!");
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            Log.i(TAG, "IOException!");
+            e.printStackTrace();
+        }
+
+    }
+
     public static void endSession() {
         Log.v(TAG, "endSession()");
 
@@ -146,25 +198,6 @@ public class OTLogService {
     }
 
     /**
-     * Sets if the data is sent directly to the log service (directSend = true).
-     * 
-     * This overrides the default behavior for testing purposes.
-     * 
-     * The default behavior is to send the event data directly if the device is
-     * connected to the Internet via WiFi (larger bandwidth). If the device is
-     * not connected via WiFi the data will be sent to a file which is then sent
-     * to the log service at a later time. This helps save bandwidth and helps
-     * with network performance.
-     * 
-     * @param directSend
-     *            If log service should sent event data directly, indifferent of
-     *            the connection.
-     */
-    public static void setDirectSend(boolean directSend) {
-        OTLogService.directSend = directSend;
-    }
-
-    /**
      * Initializes the Logging Service with the activities's Context object, and
      * the Opentracker's appName name received in the trail e-mail.
      */
@@ -175,6 +208,17 @@ public class OTLogService {
         OTLogService.appName = appName;
         otFileUtil = new OTFileUtils(appContext);
     }
+
+    public static void onPause() {
+        Log.e(TAG, "onPause()");
+
+        compressAndUploadData();
+    }
+
+    // public static void sendEvent(HashMap<String, String> keyValuePairs) {
+    // Log.v(TAG, "sendEvent()");
+    // sendEvent(keyValuePairs, true);
+    // }
 
     /**
      * Registers data related to this session and/ or user. Method ensures this
@@ -439,109 +483,67 @@ public class OTLogService {
         return sessionEventCount;
     }
 
-    public static void sendEvent(String title,
-            HashMap<String, String> keyValuePairs) {
-        Log.v(TAG, "sendEvent()");
-        if (keyValuePairs == null) {
-            keyValuePairs = new HashMap<String, String>();
-        }
-        keyValuePairs.put("ti", title);
-        sendEvent(keyValuePairs, true);
+    public static void sendEvent(String eventName) {
+        sendEvent(eventName, true);
     }
 
-    public static void sendEvent(HashMap<String, String> keyValuePairs) {
-        Log.v(TAG, "sendEvent()");
-        sendEvent(keyValuePairs, true);
-    }
-
-    public static void sendEvent(HashMap<String, String> keyValuePairs,
+    public static void sendEvent(String eventName,
             boolean appendSessionStateData) {
-        Log.v(TAG, "sendEvent()");
+        sendEvent(eventName, null, appendSessionStateData);
+    }
+
+    public static void sendEvent(String eventName,
+            HashMap<String, String> keyValuePairs) {
+        sendEvent(eventName, keyValuePairs, true);
+    }
+
+    public static void sendEvent(String eventName,
+            HashMap<String, String> keyValuePairs,
+            boolean appendSessionStateData) {
+        Log.v(TAG, "sendEvent(" + eventName + ",  " + appendSessionStateData
+                + ", " + keyValuePairs + ")");
+        sendTask(eventName, keyValuePairs, appendSessionStateData);
+    }
+
+    private static final void processEvent(String eventName,
+            HashMap<String, String> keyValuePairs,
+            boolean appendSessionStateData) {
+
+        if (keyValuePairs == null)
+            keyValuePairs = new HashMap<String, String>();
 
         // ti is default title tag
-        if (keyValuePairs.get("ti") == null)
+        if (eventName == null) {
             if (keyValuePairs.get("title") == null) {
                 keyValuePairs.put("ti", "[No title]");
             } else {
                 keyValuePairs.put("ti", keyValuePairs.get("title"));
                 keyValuePairs.remove("title");
             }
-
-        keyValuePairs.put("si", appName);
-
-        // also add any session state data
-        HashMap<String, String> keyValuePairsMerged =
-                new HashMap<String, String>();
-        keyValuePairsMerged.put("si", appName);
-
-        if (appendSessionStateData) {
-            HashMap<String, String> dataFiles = null;
-            try {
-                dataFiles = otFileUtil.getSessionStateDataPairs();
-            } catch (IOException e) {
-
-                Log.i(TAG, "Exception while getting fileName data pairs");
-
-                HashMap<String, String> logMap = new HashMap<String, String>();
-                logMap.put("si", "errors"); // log to error appName
-                logMap.put("message", getStackTrace(e));
-                OTSend.send(logMap);
-
-            }
-            if (dataFiles != null)
-                keyValuePairsMerged.putAll(dataFiles);
+        } else {
+            keyValuePairs.put("ti", eventName);
         }
-        if (keyValuePairs != null)
-            keyValuePairsMerged.putAll(keyValuePairs);
-
-        try {
-            appendDataToFile(keyValuePairsMerged);
-        } catch (IOException e) {
-            Log.i(TAG, "Exception while appending data to file: " + e);
-
-            HashMap<String, String> logMap = new HashMap<String, String>();
-            logMap.put("si", "errors"); // log to error appName
-            logMap.put("message", getStackTrace(e));
-            OTSend.send(logMap);
-        }
-    }
-
-    public static void sendEvent(String event) {
-        Log.v(TAG, "sendEvent()");
-        sendEvent(event, true);
-    }
-
-    public static void sendEvent(String event, boolean appendSessionStateData) {
-        Log.v(TAG, "sendEvent(" + event + "," + appendSessionStateData + ")");
-
         // update the sessionData
         int eventCount = registerSessionEvent();
-        HashMap<String, String> keyValuePairs = new HashMap<String, String>();
+        Log.d(TAG, "eventCound: " + eventCount);
+
         keyValuePairs.put("si", appName);
-        keyValuePairs.put("ti", event);
-        keyValuePairs.put("lc", "http://app.opentracker.net/" + appName
-                + "/" + event.replace('/', '.'));
-        try {
-            keyValuePairs.put("otui", otFileUtil.readFile("otui"));
-            keyValuePairs.put("ots", otFileUtil.readFile("ots"));
-        } catch (IOException e) {
-            Log.i(TAG, "Exception while reading to ots/ otui: " + e);
-            HashMap<String, String> logMap = new HashMap<String, String>();
-            logMap.put("si", "errors"); // log to error appName
-            logMap.put("message", getStackTrace(e));
-            OTSend.send(logMap);
-        }
+        keyValuePairs.put("platform", OTDataSockets.getPlatform());
+        keyValuePairs.put("platform version", OTDataSockets
+                .getPlatformVersion());
+        keyValuePairs.put("device", OTDataSockets.getDevice());
+        keyValuePairs.put("connection", OTDataSockets
+                .getNetworkType(appContext));
+        keyValuePairs.put("sh", OTDataSockets.getScreenHeight(appContext));
+        keyValuePairs.put("sw", OTDataSockets.getScreenWidth(appContext));
+        keyValuePairs.put("app version", OTDataSockets
+                .getAppVersion(appContext));
+        keyValuePairs.put("lc", "http://app.opentracker.net/" + appName + "/"
+                + eventName.replace('/', '.'));
 
-        if (eventCount == 1) {
-            keyValuePairs.put("sh", OTDataSockets.getScreenHeight(appContext));
-            keyValuePairs.put("sw", OTDataSockets.getScreenWidth(appContext));
-            keyValuePairs.put("version", OTDataSockets
-                    .getAppVersion(appContext));
-        }
-
-        // also add any session state data
-        HashMap<String, String> keyValuePairsMerged =
-                new HashMap<String, String>();
+        String location = OTDataSockets.getLastCoordinates(appContext);
+        if (location != null)
+            keyValuePairs.put("location", location);
 
         if (appendSessionStateData) {
             HashMap<String, String> dataFiles = null;
@@ -558,19 +560,27 @@ public class OTLogService {
 
             }
             if (dataFiles != null)
-                keyValuePairsMerged.putAll(dataFiles);
+                keyValuePairs.putAll(dataFiles);
         }
-        if (keyValuePairs != null)
-            keyValuePairsMerged.putAll(keyValuePairs);
 
         // TODO: work out logic of appending data to file
+        Log.e(TAG, "directSend: " + directSend);
+        Log.e(TAG, "adding: " + keyValuePairs);
         try {
-            if (OTDataSockets.getNetwork(appContext).equalsIgnoreCase("wifi")) {
-                OTSend.send(keyValuePairsMerged);
+            if (OTDataSockets.getNetworkType(appContext).equalsIgnoreCase(
+                    "wifi")) {
+                OTSend.send(keyValuePairs);
             } else if (directSend) {
-                OTSend.send(keyValuePairsMerged);
+                OTSend.send(keyValuePairs);
             } else {
-                appendDataToFile(keyValuePairsMerged);
+                appendDataToFile(keyValuePairs);
+            }
+
+        } catch (UnknownHostException e) {
+            try {
+                appendDataToFile(keyValuePairs);
+            } catch (IOException e1) {
+                // TODO: ignore
             }
         } catch (Exception e) {
             Log.i(TAG, "Exception while appending data to file: " + e);
@@ -582,68 +592,67 @@ public class OTLogService {
         }
     }
 
-    public static void onPause() {
-        compressAndUploadData();
-    }
+    private static void sendTask(final String event,
+            final HashMap<String, String> keyValuePairs,
+            final boolean appendSessionStateData) {
+        // Do something long
+        Runnable runnable = new Runnable() {
+            public void run() {
 
-    public static void compressAndUploadData() {
+                try {
+                    processEvent(event, keyValuePairs, appendSessionStateData);
+                    handler.post(new Runnable() {
+                        public void run() {
+                        }
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
 
-        Log.v(TAG, "compressAndUploadData()");
-        /*
-         * String[] fileContents = otFileUtil.readFileByLine("OTDir",
-         * "fileToSend"); for (int i = 0; i < fileContents.length; i++)
-         * OTSend.send(fileContents[i]);
-         */
-        // String[] fileContents;
-        try {
-            // fileContents = otFileUtil.readFileLines("OTDir", "fileToSend");
-            // Log.i(TAG, "Http requests in the file: " + fileContents.length);
-
-            otFileUtil.compressFile(OTFileUtils.UPLOAD_PATH, "fileToSend");
-
-            HashMap<String, String> map = new HashMap<String, String>();
-            map.put("zip", otFileUtil.readFile(OTFileUtils.UPLOAD_PATH,
-                    "fileToSend.gz"));
-
-            long time1 = System.currentTimeMillis();
-            String response = OTSend.send(map);
-
-            long time2 = System.currentTimeMillis();
-            Log.i(TAG, "Time taken to response:" + (time2 - time1));
-            if (response != null) {
-                otFileUtil.removeFile(OTFileUtils.UPLOAD_PATH, "fileToSend.gz");
-                otFileUtil.emptyFile(OTFileUtils.UPLOAD_PATH, "fileToSend");
-                Log.i(TAG, "cleared file");
-            } else {
-                Log.i(TAG, "File did not empty!");
             }
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-
+        };
+        new Thread(runnable).start();
     }
 
-    public static void uploadData(HashMap<String, String> keyValuePairs)
-            throws IOException {
-        Log.v(TAG, "uploadData()");
-        // otFileUtil.removeFile("testFileNamePavi");
-        // otFileUtil.removeFile("testFile");
-        // otFileUtil.removeFile("otFile");
-        // HashMap<String, String> map = otFileUtil.getFileNameDataPair();
-        // Iterator<Entry<String, String>> it =
-        // keyValuePairs.entrySet().iterator();
-        // while (it.hasNext()) {
-        // Map.Entry<String, String> pair =
-        // (Map.Entry<String, String>) it.next();
-        // map.put(pair.getKey().toString(), pair.getValue().toString());
-        // }
-
-        String success = OTSend.send(keyValuePairs);
-        if (success == null) {
-            appendDataToFile(keyValuePairs);
-        }
+    /**
+     * Sets if the data is sent directly to the log service (directSend = true).
+     * 
+     * This overrides the default behavior for testing purposes.
+     * 
+     * The default behavior is to send the event data directly if the device is
+     * connected to the Internet via WiFi (larger bandwidth). If the device is
+     * not connected via WiFi the data will be sent to a file which is then sent
+     * to the log service at a later time. This helps save bandwidth and helps
+     * with network performance.
+     * 
+     * @param directSend
+     *            If log service should sent event data directly, indifferent of
+     *            the connection.
+     */
+    public static void setDirectSend(boolean directSend) {
+        // OTLogService.directSend = directSend;
     }
+
+    // public static void uploadData(HashMap<String, String> keyValuePairs)
+    // throws IOException {
+    // Log.v(TAG, "uploadData()");
+    // otFileUtil.removeFile("testFileNamePavi");
+    // otFileUtil.removeFile("testFile");
+    // otFileUtil.removeFile("otFile");
+    // HashMap<String, String> map = otFileUtil.getFileNameDataPair();
+    // Iterator<Entry<String, String>> it =
+    // keyValuePairs.entrySet().iterator();
+    // while (it.hasNext()) {
+    // Map.Entry<String, String> pair =
+    // (Map.Entry<String, String>) it.next();
+    // map.put(pair.getKey().toString(), pair.getValue().toString());
+    // }
+
+    // String success = OTSend.send(keyValuePairs);
+    // if (success == null) {
+    // appendDataToFile(keyValuePairs);
+    // }
+    // }
 
     /**
      * Can not create object from out side of the class, utility static methods.
