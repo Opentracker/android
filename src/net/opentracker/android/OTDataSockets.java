@@ -122,16 +122,19 @@ public class OTDataSockets {
 
         if (tmpLocation != null) {
 
-            Log.e(TAG, "getNetworkCoordinates: " + tmpLocation.getAccuracy());
-            Log.e(TAG, "getNetworkCoordinates: "
+            String coordinates =
+                    tmpLocation.getLatitude() + ", "
+                            + tmpLocation.getLongitude();
+
+            Log.v(TAG, "tmpLocation.getAccuracy: " + tmpLocation.getAccuracy());
+            Log.v(TAG, "getNetworkCoordinates: " + coordinates + "; "
                     + new Date(tmpLocation.getTime()));
-            Log.d(TAG, t0 + "[ms]");
+            Log.v(TAG, t0 + "[ms]");
 
             // dont return default 0,0 values sometimes seen
             if (tmpLocation.getLatitude() != 0f
                     && tmpLocation.getLongitude() != 0) {
-                return tmpLocation.getLatitude() + ", "
-                        + tmpLocation.getLongitude();
+                return coordinates;
             } else {
                 return null;
             }
@@ -140,7 +143,6 @@ public class OTDataSockets {
             return null;
         }
     }
-
 
     @SuppressWarnings("unchecked")
     public static String getNetworkType(final Context appContext) {

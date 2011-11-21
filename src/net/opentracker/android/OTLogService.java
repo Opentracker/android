@@ -49,14 +49,12 @@ public class OTLogService {
     // used for testing
     private static Boolean directSend = false;
 
-    // TODO make threading more reliable
     private static Handler handler = new Handler();
-
-    private static Boolean isSessionStarted = false;
 
     private static OTFileUtils otFileUtil;
 
-    private static final int sessionLapseTimeMs = 30 * 1000;
+    // the time to lapse before creating a new session
+    private static final int sessionLapseTimeMs = 30 * 1000; // m x s x ms
 
     private static final String TAG = OTLogService.class.getName();
 
@@ -154,7 +152,6 @@ public class OTLogService {
             // nothing to do
             Log.i(TAG, "File not found!");
         } catch (IOException e) {
-            // TODO Auto-generated catch block
             Log.i(TAG, "IOException!");
             e.printStackTrace();
         }
@@ -163,8 +160,6 @@ public class OTLogService {
 
     public static void endSession() {
         Log.v(TAG, "endSession()");
-
-        isSessionStarted = false;
     }
 
     /**
@@ -247,6 +242,18 @@ public class OTLogService {
             OTSend.send(logMap);
         }
 
+        // same thing for session data
+        try {
+            otFileUtil.makeFile("ots");
+        } catch (IOException e) {
+            Log.v(TAG, "Can't make file ots");
+            HashMap<String, String> logMap = new HashMap<String, String>();
+            logMap.put("si", "errors"); // log to error appName
+            logMap.put("message", "Can't make file ots");
+            logMap.put("exception", getStackTrace(e));
+            OTSend.send(logMap);
+        }
+
         // read the users data file
         String otUserData = null;
         try {
@@ -259,17 +266,31 @@ public class OTLogService {
             logMap.put("exception", getStackTrace(e));
             OTSend.send(logMap);
         }
-
         Log.v(TAG, "otui read: " + otUserData);
 
-        // create default/ initial session data
+        // read the session data
+        String otSessionData = null;
+        try {
+            otSessionData = otFileUtil.readFile("ots");
+        } catch (IOException e) {
+            Log.e(TAG, "Can't read file ots");
+            HashMap<String, String> logMap = new HashMap<String, String>();
+            logMap.put("si", "errors"); // log to error appName
+            logMap.put("message", "Can't read file ots");
+            logMap.put("exception", getStackTrace(e));
+            OTSend.send(logMap);
+        }
+
+        // create default/ initial user data
         int randomNumberClient = (int) (1000 * Math.random());
-        long firstVisitStartUnixTimestamp = System.currentTimeMillis();
-        long previousVisitStartUnixTimestamp = firstVisitStartUnixTimestamp;
-        long currentVisitStartUnixTimestamp = firstVisitStartUnixTimestamp;
+
+        long currentUnixTimestampMs = System.currentTimeMillis();
+
+        long firstSessionStartUnixTimestamp = currentUnixTimestampMs;
+        long previousSessionStartUnixTimestamp = currentUnixTimestampMs;
+        long currentSessionStartUnixTimestamp = currentUnixTimestampMs;
         int sessionCount = 1;
         int lifeTimeEventCount = 1;
-        long currentTime = System.currentTimeMillis();
 
         if (otUserData != null) {
 
@@ -277,55 +298,46 @@ public class OTLogService {
             String[] userData = otUserData.split("\\.");
             if (userData.length != 6) {
 
+                // handle corruption use initialized values
                 Log.i(TAG, "Data is corrupted length: " + userData.length
                         + ", userData:" + otUserData);
 
                 HashMap<String, String> logMap = new HashMap<String, String>();
                 logMap.put("si", "errors"); // log to error appName
                 logMap.put("message", "Got corrupt otui, wrong length.");
+                logMap.put("userData.length", "" + userData.length);
+                logMap.put("otUserData", otUserData);
                 OTSend.send(logMap);
 
-                // handle corruption: reinitialize everything
-                randomNumberClient = (int) (1000 * Math.random());
-                firstVisitStartUnixTimestamp = System.currentTimeMillis();
-                previousVisitStartUnixTimestamp = firstVisitStartUnixTimestamp;
-                currentVisitStartUnixTimestamp = firstVisitStartUnixTimestamp;
-                sessionCount = 1;
-                lifeTimeEventCount = 1;
-
             } else {
+
+                // as per
+                // http://api.opentracker.net/api/inserts/browser/reading_cookie.jsp
+
+                // _otui <random number client site>. <first visit start unix
+                // timestamp>. <previous visit start unix timestamp>. <current
+                // visit start unix timestamp>. <session count>. <life time
+                // event view count>
 
                 try {
                     // parse the user data
                     randomNumberClient = Integer.parseInt(userData[0]);
-                    firstVisitStartUnixTimestamp = Long.parseLong(userData[1]);
-                    previousVisitStartUnixTimestamp =
+
+                    firstSessionStartUnixTimestamp =
+                            Long.parseLong(userData[1]);
+
+                    previousSessionStartUnixTimestamp =
                             Long.parseLong(userData[2]);
-                    currentVisitStartUnixTimestamp =
+
+                    currentSessionStartUnixTimestamp =
                             Long.parseLong(userData[3]);
+
                     sessionCount = Integer.parseInt(userData[4]);
+
                     lifeTimeEventCount = Integer.parseInt(userData[5]);
 
-                    // if the session is already started then just update the
-                    // event count
-                    if (isSessionStarted) {
-                        lifeTimeEventCount++;
-                    } else {
-
-                        // do the work, to start a new session
-                        if (currentTime - currentVisitStartUnixTimestamp >= sessionLapseTimeMs) {
-                            previousVisitStartUnixTimestamp =
-                                    currentVisitStartUnixTimestamp;
-                            currentVisitStartUnixTimestamp =
-                                    System.currentTimeMillis();
-                            sessionCount++;
-                            lifeTimeEventCount++;
-                        } else {
-                            // not a new session, just update lifeTimeEventCount
-                            lifeTimeEventCount++;
-                        }
-
-                    }
+                    // update the event count
+                    lifeTimeEventCount++;
 
                 } catch (Exception e) {
 
@@ -339,11 +351,9 @@ public class OTLogService {
 
                     // handle corruption: reinitialize everything
                     randomNumberClient = (int) (1000 * Math.random());
-                    firstVisitStartUnixTimestamp = System.currentTimeMillis();
-                    previousVisitStartUnixTimestamp =
-                            firstVisitStartUnixTimestamp;
-                    currentVisitStartUnixTimestamp =
-                            firstVisitStartUnixTimestamp;
+                    firstSessionStartUnixTimestamp = currentUnixTimestampMs;
+                    previousSessionStartUnixTimestamp = currentUnixTimestampMs;
+                    currentSessionStartUnixTimestamp = currentUnixTimestampMs;
                     sessionCount = 1;
                     lifeTimeEventCount = 1;
 
@@ -351,11 +361,116 @@ public class OTLogService {
             }
         }
 
+        // Create data with initial parameters
+        int sessionEventCount = 1;
+        long previousEventUnixTimestamp = currentUnixTimestampMs;
+
+        boolean isNewSession = true;
+        if (otSessionData != null) {
+            // initialize the data
+            String[] sessionData = otSessionData.split("\\.");
+            if (sessionData.length != 4) {
+
+                Log.i(TAG, "Data is corrupted length: " + sessionData.length
+                        + ", sessionData:" + otSessionData);
+
+                HashMap<String, String> logMap = new HashMap<String, String>();
+                logMap.put("si", "errors"); // log to error appName
+                logMap.put("message", "Got corrupt ots, wrong length.");
+                OTSend.send(logMap);
+
+                // data is corrupted, using initialized data
+
+            } else {
+
+                try {
+
+                    // as per
+                    // http://api.opentracker.net/api/inserts/browser/reading_cookie.jsp
+
+                    // _ots <session event view count>. <current visit start
+                    // unix timestamp>. <previous event view unix timestamp>.
+                    // <current event view unix timestamp>
+
+                    previousEventUnixTimestamp = Long.parseLong(sessionData[2]);
+                    long diff =
+                            (currentUnixTimestampMs - previousEventUnixTimestamp);
+                    Log.e(TAG, "Got: " + diff + "[ms]");
+                    Log.e(TAG, "Got currentUnixTimestampMs: "
+                            + currentUnixTimestampMs + "[ms]");
+                    Log.e(TAG, "Got previousEventUnixTimestamp: "
+                            + previousEventUnixTimestamp + "[ms]");
+                    // make sure we have a ongoing session
+                    if (diff < sessionLapseTimeMs) {
+
+                        Log.e(TAG, "Continuing starting.");
+
+                        // ongoing session, parse the session data
+                        sessionEventCount = Integer.parseInt(sessionData[0]);
+
+                        // currentSessionStartUnixTimestamp =
+                        // Long.parseLong(sessionData[1]);
+
+                        // do the work, to start a new event
+                        sessionEventCount++;
+
+                        // use initial session values
+                        isNewSession = false;
+
+                    }
+
+                    previousEventUnixTimestamp = Long.parseLong(sessionData[3]);
+
+                } catch (Exception e) {
+
+                    Log.i(TAG, "ots has corrupted data: " + e);
+
+                    HashMap<String, String> logMap =
+                            new HashMap<String, String>();
+                    logMap.put("si", "errors"); // log to error appName
+                    logMap.put("message", getStackTrace(e));
+                    OTSend.send(logMap);
+
+                    // just reinitialize everything
+                    sessionEventCount = 1;
+                    previousEventUnixTimestamp = currentUnixTimestampMs;
+                }
+            }
+        }
+
+        // do the work, to register new session
+        if (isNewSession) {
+            Log.e(TAG, "Updating user data with new session.");
+            previousSessionStartUnixTimestamp =
+                    currentSessionStartUnixTimestamp;
+            currentSessionStartUnixTimestamp = currentUnixTimestampMs;
+            sessionCount++;
+        }
+
+        otSessionData =
+                sessionEventCount + "." + currentSessionStartUnixTimestamp
+                        + "." + previousEventUnixTimestamp + "."
+                        + currentUnixTimestampMs;
+
+        try {
+            otFileUtil.writeFile("ots", otSessionData);
+        } catch (IOException e) {
+
+            Log.i(TAG, "Exception while writing to ots: " + e);
+
+            HashMap<String, String> logMap = new HashMap<String, String>();
+            logMap.put("si", "errors"); // log to error appName
+            logMap.put("message", getStackTrace(e));
+            OTSend.send(logMap);
+
+        }
+        Log.i(TAG, "ots write: " + otSessionData);
+
         // format the otUserData
         otUserData =
-                randomNumberClient + "." + firstVisitStartUnixTimestamp + "."
-                        + previousVisitStartUnixTimestamp + "."
-                        + currentVisitStartUnixTimestamp + "." + sessionCount
+                randomNumberClient + "." + firstSessionStartUnixTimestamp + "."
+                        + previousSessionStartUnixTimestamp + "."
+                        + currentSessionStartUnixTimestamp + "." + sessionCount
                         + "." + lifeTimeEventCount;
 
         // write the otUserData
@@ -370,116 +485,6 @@ public class OTLogService {
             OTSend.send(logMap);
         }
         Log.v(TAG, "otui write: " + otUserData);
-
-        // same thing for session data
-        try {
-            otFileUtil.makeFile("ots");
-        } catch (IOException e) {
-            Log.v(TAG, "Can't make file ots");
-            HashMap<String, String> logMap = new HashMap<String, String>();
-            logMap.put("si", "errors"); // log to error appName
-            logMap.put("message", "Can't make file ots");
-            logMap.put("exception", getStackTrace(e));
-            OTSend.send(logMap);
-        }
-
-        // Create data with initial parameters
-        int sessionEventCount = 1;
-        long currentSessionStartUnixTimestamp = currentVisitStartUnixTimestamp;
-        long previousEventStartUnixTimestamp = currentSessionStartUnixTimestamp;
-        long currentEventStartUnixTimestamp = currentSessionStartUnixTimestamp;
-        String otSessionData = null;
-
-        // if session is already started
-        if (isSessionStarted) {
-            try {
-                otSessionData = otFileUtil.readFile("ots");
-            } catch (IOException e) {
-                Log.e(TAG, "Can't read file ots");
-                HashMap<String, String> logMap = new HashMap<String, String>();
-                logMap.put("si", "errors"); // log to error appName
-                logMap.put("message", "Can't read file ots");
-                logMap.put("exception", getStackTrace(e));
-                OTSend.send(logMap);
-            }
-
-            if (otSessionData != null) {
-                // initialize the data
-                String[] sessionData = otSessionData.split("\\.");
-                if (sessionData.length != 4) {
-
-                    Log.i(TAG, "Data is corrupted length: "
-                            + sessionData.length + ", sessionData:"
-                            + otSessionData);
-
-                    HashMap<String, String> logMap =
-                            new HashMap<String, String>();
-                    logMap.put("si", "errors"); // log to error appName
-                    logMap.put("message", "Got corrupt ots, wrong length.");
-                    OTSend.send(logMap);
-                    // data is corrupted, and intialized
-
-                } else {
-                    try {
-                        // parse the user data
-                        sessionEventCount = Integer.parseInt(sessionData[0]);
-                        currentSessionStartUnixTimestamp =
-                                Long.parseLong(sessionData[1]);
-                        previousEventStartUnixTimestamp =
-                                Long.parseLong(sessionData[2]);
-                        currentEventStartUnixTimestamp =
-                                Long.parseLong(sessionData[3]);
-
-                        // do the work, to start a new event
-                        sessionEventCount++;
-                        previousEventStartUnixTimestamp =
-                                currentEventStartUnixTimestamp;
-                        currentEventStartUnixTimestamp =
-                                System.currentTimeMillis();
-
-                    } catch (Exception e) {
-
-                        Log.i(TAG, "ots has corrupted data: " + e);
-
-                        HashMap<String, String> logMap =
-                                new HashMap<String, String>();
-                        logMap.put("si", "errors"); // log to error appName
-                        logMap.put("message", getStackTrace(e));
-                        OTSend.send(logMap);
-
-                        // just reinitialize everything
-                        sessionEventCount = 1;
-                        currentSessionStartUnixTimestamp =
-                                currentVisitStartUnixTimestamp;
-                        previousEventStartUnixTimestamp =
-                                currentSessionStartUnixTimestamp;
-                        currentEventStartUnixTimestamp =
-                                currentSessionStartUnixTimestamp;
-                    }
-                }
-            }
-        }
-
-        otSessionData =
-                sessionEventCount + "." + currentSessionStartUnixTimestamp
-                        + "." + previousEventStartUnixTimestamp + "."
-                        + currentEventStartUnixTimestamp;
-
-        try {
-            otFileUtil.writeFile("ots", otSessionData);
-        } catch (IOException e) {
-
-            Log.i(TAG, "Exception while writing to ots: " + e);
-
-            HashMap<String, String> logMap = new HashMap<String, String>();
-            logMap.put("si", "errors"); // log to error appName
-            logMap.put("message", getStackTrace(e));
-            OTSend.send(logMap);
-
-        }
-        isSessionStarted = true;
-
-        Log.i(TAG, "ots write: " + otSessionData);
         return sessionEventCount;
     }
 
@@ -505,7 +510,7 @@ public class OTLogService {
 
         // if we are on wifi then start separate thread otherwise
         // just log to disk (quick enough)
-        if (OTDataSockets.getNetworkType(appContext).equalsIgnoreCase("wifi"))
+        if (OTDataSockets.getNetworkType(appContext).equalsIgnoreCase("wi-fi"))
             sendTask(eventName, keyValuePairs, appendSessionStateData);
         else
             processEvent(eventName, keyValuePairs, appendSessionStateData);
@@ -514,6 +519,9 @@ public class OTLogService {
     private static final void processEvent(String eventName,
             HashMap<String, String> keyValuePairs,
             boolean appendSessionStateData) {
+
+        Log.v(TAG, "processEvent(" + eventName + ",  " + appendSessionStateData
+                + ", " + keyValuePairs + ")");
 
         if (keyValuePairs == null)
             keyValuePairs = new HashMap<String, String>();
@@ -570,15 +578,21 @@ public class OTLogService {
         }
 
         // TODO: work out logic of appending data to file
-        Log.e(TAG, "directSend: " + directSend);
-        Log.e(TAG, "adding: " + keyValuePairs);
+        Log.v(TAG, "directSend: " + directSend + ", "
+                + OTDataSockets.getNetworkType(appContext));
         try {
             if (OTDataSockets.getNetworkType(appContext).equalsIgnoreCase(
-                    "wifi")) {
+                    "wi-fi")) {
+                Log.e(TAG, "sending: " + keyValuePairs);
+
                 OTSend.send(keyValuePairs);
             } else if (directSend) {
+                Log.e(TAG, "sending: " + keyValuePairs);
+
                 OTSend.send(keyValuePairs);
             } else {
+                Log.e(TAG, "appending: " + keyValuePairs);
+
                 appendDataToFile(keyValuePairs);
             }
 

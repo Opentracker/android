@@ -163,7 +163,10 @@ public class OTSend {
             Map.Entry<String, String> pair =
                     (Map.Entry<String, String>) it.next();
             pairs.add(new BasicNameValuePair(pair.getKey(), pair.getValue()));
-            Log.v(TAG, pair.getKey() + " = " + pair.getValue());
+            if (pair.getKey().equals("ots") || pair.getKey().equals("otui"))
+                Log.e(TAG, pair.getKey() + " = " + pair.getValue());
+            else
+                Log.v(TAG, pair.getKey() + " = " + pair.getValue());
 
         }
 
