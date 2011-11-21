@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-      package="net.opentracker.android"
-      android:versionCode="1"
-      android:versionName="1.0">
+    package="net.opentracker.example"
+    android:versionCode="1"
+    android:versionName="1.0" >
+
     <!--
     http://developer.android.com/reference/android/Manifest.permission.html
     -->
@@ -17,7 +18,7 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" ></uses-permission>
 
     <!--
-    Allows an applications to access information about networks: needed for 
+    Allows an applications to access information about networks: needed for
     methods OTDataSockets.getNetworkType() and OTDataSockets.getNetwork();
     -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" ></uses-permission>
