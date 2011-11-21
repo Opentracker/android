@@ -2,7 +2,7 @@ package net.opentracker.android.test;
 
 import java.util.Locale;
 
-import net.opentracker.android.R;
+import net.opentracker.example.R;
 
 import android.app.Activity;
 import android.content.ContentValues;

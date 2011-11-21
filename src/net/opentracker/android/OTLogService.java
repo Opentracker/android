@@ -502,7 +502,13 @@ public class OTLogService {
             boolean appendSessionStateData) {
         Log.v(TAG, "sendEvent(" + eventName + ",  " + appendSessionStateData
                 + ", " + keyValuePairs + ")");
-        sendTask(eventName, keyValuePairs, appendSessionStateData);
+
+        // if we are on wifi then start separate thread otherwise
+        // just log to disk (quick enough)
+        if (OTDataSockets.getNetworkType(appContext).equalsIgnoreCase("wifi"))
+            sendTask(eventName, keyValuePairs, appendSessionStateData);
+        else
+            processEvent(eventName, keyValuePairs, appendSessionStateData);
     }
 
     private static final void processEvent(String eventName,
