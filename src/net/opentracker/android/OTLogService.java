@@ -26,6 +26,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URLEncoder;
 import java.net.UnknownHostException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -371,6 +372,8 @@ public class OTLogService {
             String[] sessionData = otSessionData.split("\\.");
             if (sessionData.length != 4) {
 
+                // data is corrupted, using initialized data
+
                 Log.i(TAG, "Data is corrupted length: " + sessionData.length
                         + ", sessionData:" + otSessionData);
 
@@ -378,8 +381,6 @@ public class OTLogService {
                 logMap.put("si", "errors"); // log to error appName
                 logMap.put("message", "Got corrupt ots, wrong length.");
                 OTSend.send(logMap);
-
-                // data is corrupted, using initialized data
 
             } else {
 
@@ -392,7 +393,7 @@ public class OTLogService {
                     // unix timestamp>. <previous event view unix timestamp>.
                     // <current event view unix timestamp>
 
-                    previousEventUnixTimestamp = Long.parseLong(sessionData[2]);
+                    previousEventUnixTimestamp = Long.parseLong(sessionData[3]);
                     long diff =
                             (currentUnixTimestampMs - previousEventUnixTimestamp);
                     Log.e(TAG, "Got: " + diff + "[ms]");
@@ -419,8 +420,6 @@ public class OTLogService {
 
                     }
 
-                    previousEventUnixTimestamp = Long.parseLong(sessionData[3]);
-
                 } catch (Exception e) {
 
                     Log.i(TAG, "ots has corrupted data: " + e);
@@ -440,7 +439,7 @@ public class OTLogService {
 
         // do the work, to register new session
         if (isNewSession) {
-            Log.e(TAG, "Updating user data with new session.");
+            Log.e(TAG, "Updating data with new session.");
             previousSessionStartUnixTimestamp =
                     currentSessionStartUnixTimestamp;
             currentSessionStartUnixTimestamp = currentUnixTimestampMs;
@@ -453,6 +452,13 @@ public class OTLogService {
                         + currentUnixTimestampMs;
 
         try {
+            Log.e(TAG, "Writing session: " + otSessionData);
+            Log.e(TAG, "Writing current: " + currentUnixTimestampMs);
+            Log.e(TAG, "Writing previous: " + previousEventUnixTimestamp);
+            Log.e(TAG, "Writing current: " + new Date(currentUnixTimestampMs));
+            Log.e(TAG, "Writing previous: "
+                    + new Date(previousEventUnixTimestamp));
+
             otFileUtil.writeFile("ots", otSessionData);
         } catch (IOException e) {
 
@@ -475,6 +481,7 @@ public class OTLogService {
 
         // write the otUserData
         try {
+            Log.e(TAG, "Writing user: " + otUserData);
             otFileUtil.writeFile("otui", otUserData);
         } catch (IOException e) {
             Log.i(TAG, "Exception while writing to otui: " + e);
@@ -516,7 +523,7 @@ public class OTLogService {
             processEvent(eventName, keyValuePairs, appendSessionStateData);
     }
 
-    private static final void processEvent(String eventName,
+    private synchronized static final void processEvent(String eventName,
             HashMap<String, String> keyValuePairs,
             boolean appendSessionStateData) {
 
@@ -539,7 +546,7 @@ public class OTLogService {
         }
         // update the sessionData
         int eventCount = registerSessionEvent();
-        Log.d(TAG, "eventCound: " + eventCount);
+        Log.d(TAG, "eventCount: " + eventCount);
 
         keyValuePairs.put("si", appName);
         keyValuePairs.put("platform", OTDataSockets.getPlatform());
@@ -554,6 +561,16 @@ public class OTLogService {
                 .getAppVersion(appContext));
         keyValuePairs.put("lc", "http://app.opentracker.net/" + appName + "/"
                 + eventName.replace('/', '.'));
+
+        // debug
+        String[] userData = null;
+        try {
+            userData = otFileUtil.readFile("otui").split("\\.");
+        } catch (IOException e) {
+        }
+        int lifeTimeEventCount = Integer.parseInt(userData[5]);
+
+        keyValuePairs.put("ti", eventName + " (" + lifeTimeEventCount + ")");
 
         String location = OTDataSockets.getLastCoordinates(appContext);
         if (location != null)

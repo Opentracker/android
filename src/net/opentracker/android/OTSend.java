@@ -62,6 +62,7 @@ import android.util.Log;
  * AndroidManifest.xml. This allows your application to use any Internet
  * connections.
  * 
+ * The application will need the following android permissions defined:
  * <uses-permission android:name="android.permission.INTERNET" />
  */
 public class OTSend {

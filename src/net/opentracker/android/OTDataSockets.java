@@ -44,7 +44,7 @@ public class OTDataSockets {
     @SuppressWarnings("unchecked")
     private static HashMap cacheType = new HashMap();
 
-    private static final long EXPIRE_MS = 5 * 1000l * 60l;
+    private static final long EXPIRE_MS = 1 * 1000l * 60l;
 
     // private static OTLocationService locationService = null;
 
@@ -127,9 +127,10 @@ public class OTDataSockets {
                             + tmpLocation.getLongitude();
 
             Log.v(TAG, "tmpLocation.getAccuracy: " + tmpLocation.getAccuracy());
-            Log.v(TAG, "getNetworkCoordinates: " + coordinates + "; "
+            Log.v(TAG, "getLastCoordinates: " + coordinates + "; "
                     + new Date(tmpLocation.getTime()));
-            Log.v(TAG, t0 + "[ms]");
+            t0 = System.currentTimeMillis() - t0;
+            Log.d(TAG, t0 + "[ms]");
 
             // dont return default 0,0 values sometimes seen
             if (tmpLocation.getLatitude() != 0f
@@ -150,10 +151,13 @@ public class OTDataSockets {
         long t0 = System.currentTimeMillis();
         Log.v(TAG, "getNetworkType()");
         if (cacheType.get("last modified time") != null
-                && ((Long) cacheType.get("last modified time")) > System
-                        .currentTimeMillis()
-                        - EXPIRE_MS) {
+                && (System.currentTimeMillis()
+                        - (Long) cacheType.get("last modified time") < EXPIRE_MS)) {
             Log.d(TAG, (String) cacheType.get("networkType"));
+
+            Log.v(TAG, "cache is "
+                    + (System.currentTimeMillis() - (Long) cacheType
+                            .get("last modified time")) + " [ms] old");
 
             t0 = System.currentTimeMillis() - t0;
             Log.d(TAG, t0 + "[ms]");
@@ -161,6 +165,8 @@ public class OTDataSockets {
             return (String) cacheType.get("networkType");
         }
         try {
+            Log.v(TAG, "Getting network type.");
+
             ConnectivityManager connectivityManager =
                     (ConnectivityManager) appContext
                             .getSystemService(Context.CONNECTIVITY_SERVICE);
