@@ -52,10 +52,13 @@ public class OTLogService {
 
     private static Handler handler = new Handler();
 
+    // flag the first wifi event, to upload compressed data
+    private static boolean isFirstWiFiEvent = true;
+
     private static OTFileUtils otFileUtil;
 
     // the time to lapse before creating a new session
-    private static final int sessionLapseTimeMs = 30 * 1000; // m x s x ms
+    private static final int sessionLapseTimeMs = 5 * 30 * 1000; // m x s x ms
 
     private static final String TAG = OTLogService.class.getName();
 
@@ -114,9 +117,56 @@ public class OTLogService {
         }
     }
 
+    private static void compressAndUploadDataTask() {
+        // Do something long
+        Runnable runnable = new Runnable() {
+            public void run() {
+
+                try {
+                    compressAndUploadData();
+                    handler.post(new Runnable() {
+                        public void run() {
+                        }
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+            }
+        };
+        new Thread(runnable).start();
+    }
+
+    /*
+     * Uploads the data file to logging servers. If no data (file size is zero)
+     * or networkType is "no network", then this method immediately returns,
+     * doing nothing.
+     */
     private static void compressAndUploadData() {
 
-        Log.v(TAG, "compressAndUploadData()");
+        long fileSizeBytes = 0;
+
+        try {
+            fileSizeBytes =
+                    otFileUtil.getFileSize(OTFileUtils.UPLOAD_PATH,
+                            "fileToSend");
+        } catch (IOException e) {
+            // ignore
+        }
+
+        if (fileSizeBytes != 0) {
+            Log.e(TAG, "compressAndUploadData()");
+        } else {
+            Log.e(TAG, "compressAndUploadData() escaping/ empty file");
+            return;
+        }
+
+        if (OTDataSockets.getNetworkType(appContext).equals("no network")) {
+            Log.e(TAG, "compressAndUploadData() escaping/ no network");
+            // no network, can't upload
+            return;
+        }
+
         /*
          * String[] fileContents = otFileUtil.readFileByLine("OTDir",
          * "fileToSend"); for (int i = 0; i < fileContents.length; i++)
@@ -208,7 +258,7 @@ public class OTLogService {
     public static void onPause() {
         Log.e(TAG, "onPause()");
 
-        compressAndUploadData();
+        compressAndUploadDataTask();
     }
 
     // public static void sendEvent(HashMap<String, String> keyValuePairs) {
@@ -228,7 +278,7 @@ public class OTLogService {
      * 
      * @return then number of events in current session
      */
-    private static int registerSessionEvent() {
+    private synchronized static int registerSessionEvent() {
         Log.v(TAG, "registerSessionEvent()");
 
         // make the users data file
@@ -516,11 +566,22 @@ public class OTLogService {
                 + ", " + keyValuePairs + ")");
 
         // if we are on wifi then start separate thread otherwise
-        // just log to disk (quick enough)
-        if (OTDataSockets.getNetworkType(appContext).equalsIgnoreCase("wi-fi"))
+        if (OTDataSockets.getNetworkType(appContext).equalsIgnoreCase("wi-fi")) {
+
+            // use this wifi event to upload the file
+            if (isFirstWiFiEvent) {
+                compressAndUploadDataTask();
+                isFirstWiFiEvent = false;
+            }
             sendTask(eventName, keyValuePairs, appendSessionStateData);
-        else
+
+        } else {
+            // make sure the next wifi event will trigger as a first wifi event
+            isFirstWiFiEvent = true;
             processEvent(eventName, keyValuePairs, appendSessionStateData);
+
+        }
+
     }
 
     private synchronized static final void processEvent(String eventName,
@@ -667,7 +728,7 @@ public class OTLogService {
      *            the connection.
      */
     public static void setDirectSend(boolean directSend) {
-        // OTLogService.directSend = directSend;
+        OTLogService.directSend = directSend;
     }
 
     // public static void uploadData(HashMap<String, String> keyValuePairs)

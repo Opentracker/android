@@ -9,18 +9,53 @@
     android:layout_height="wrap_content"
     android:text="@string/title" android:layout_marginLeft="5dip" android:layout_marginRight="5dip" android:layout_marginTop="20dip" android:layout_marginBottom="5dip"/>
   <LinearLayout android:id="@+id/linearLayout1" android:layout_width="match_parent" android:layout_height="wrap_content">
-      <EditText android:layout_width="92dp" android:layout_height="wrap_content" android:layout_gravity="center_horizontal" android:id="@+id/editText1" android:layout_marginLeft="5dip" android:layout_marginRight="5dip" android:layout_marginTop="5dip" android:layout_marginBottom="5dip" android:text="@android:string/emptyPhoneNumber" android:layout_weight="0.36">
+
+      <EditText
+          android:id="@+id/exampleEditText"
+          android:layout_width="92dp"
+          android:layout_height="wrap_content"
+          android:layout_gravity="center_horizontal"
+          android:layout_marginBottom="5dip"
+          android:layout_marginLeft="5dip"
+          android:layout_marginRight="5dip"
+          android:layout_marginTop="5dip"
+          android:layout_weight="0.36"
+          android:text="@string/defaultText" >
+
           <requestFocus></requestFocus>
       </EditText>
-      <Button android:layout_margin="5dip" android:layout_height="wrap_content" android:layout_gravity="center_horizontal" android:onClick="clickEventOnButton" android:text="@string/clickEvent" android:id="@+id/button1" android:clickable="true" android:layout_width="66dp" android:layout_weight="0.01"></Button>
+
+      <Button
+          android:id="@+id/exampleButton"
+          android:layout_width="66dp"
+          android:layout_height="wrap_content"
+          android:layout_gravity="center_horizontal"
+          android:layout_margin="5dip"
+          android:layout_weight="0.01"
+          android:clickable="true"
+          android:onClick="clickExampleButton"
+          android:text="@string/clickEvent" >
+</Button>
   </LinearLayout>
+
   <CheckBox
-    android:text="@string/clickCheckBox"
-    android:id="@+id/checkBox1"
-    android:layout_width="wrap_content"
-    android:onClick="onClickCheckBox"
-    android:layout_height="wrap_content"
-  android:layout_gravity="center_horizontal" android:layout_marginLeft="5dip" android:layout_marginRight="5dip" android:layout_marginTop="20dip" android:layout_marginBottom="5dip"></CheckBox>
+      android:id="@+id/exampleCheckBox"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_gravity="center_horizontal"
+      android:layout_marginBottom="5dip"
+      android:layout_marginLeft="5dip"
+      android:layout_marginRight="5dip"
+      android:layout_marginTop="20dip"
+      android:onClick="clickExampleCheckBox"
+      android:text="@string/clickCheckBox" >
+</CheckBox>
   <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/textView1" android:text="@string/clickSilde" android:layout_marginLeft="5dip" android:layout_marginRight="5dip" android:layout_marginTop="20dip" android:layout_marginBottom="5dip"></TextView>
-  <SeekBar android:id="@+id/seekBar1" android:layout_width="250dp" android:layout_height="wrap_content" android:layout_gravity="center_horizontal"></SeekBar>
+
+  <SeekBar
+      android:id="@+id/exampleSeekBar"
+      android:layout_width="250dp"
+      android:layout_height="wrap_content"
+      android:layout_gravity="center_horizontal" >
+</SeekBar>
 </LinearLayout>

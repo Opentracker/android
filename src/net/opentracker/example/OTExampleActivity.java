@@ -22,12 +22,15 @@ package net.opentracker.example;
 // note that this example is in the package itself so we do not need to import
 // import net.opentracker.android;
 
+import java.util.HashMap;
+
 import net.opentracker.android.OTLogService;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.EditText;
 
 /**
  * 
@@ -71,12 +74,19 @@ public class OTExampleActivity extends Activity {
      * Called in the example android project to simulate a event when a button
      * is pressed.
      */
-    public void clickEventOnButton(View v) {
-        Log.v(TAG, "clickEventOnButton()");
+    public void clickExampleButton(View v) {
 
-        // Record an event with the title "button clickEventOnButton", but you
-        // can call it anything you want.
-        OTLogService.sendEvent("button clickEventOnButton");
+        HashMap<String, String> values = new HashMap<String, String>();
+
+        EditText mEdit = (EditText) findViewById(R.id.exampleEditText);
+
+        values.put("exampleEditText", mEdit.getText().toString());
+        Log.v(TAG, "clickExampleButton(): " + values);
+
+        // Record an event with the title "button clickExampleButton", you
+        // can call it anything you want, and attributes defined in hashmap
+        // values
+        OTLogService.sendEvent("button clickExampleButton", values);
 
     }
 
@@ -84,11 +94,11 @@ public class OTExampleActivity extends Activity {
      * Called in the example android project to simulate a event when a check
      * box is pressed.
      */
-    public void onClickCheckBox(View v) {
-        Log.v(TAG, "clickEventOnButton()");
+    public void clickExampleCheckBox(View v) {
+        Log.v(TAG, "clickExampleCheckBox()");
         // Record an event with the title "button onClickCheckBox", but you
         // can call it anything you want.
-        OTLogService.sendEvent("button onClickCheckBox");
+        OTLogService.sendEvent("button clickExampleCheckBox");
     }
 
     /**
@@ -110,7 +120,7 @@ public class OTExampleActivity extends Activity {
 
         // to test things real-time always send data directly to logging service
         // make sure to comment this out if you are not testing
-        OTLogService.setDirectSend(true);
+        // OTLogService.setDirectSend(true);
 
         // Record an event with the title "Activity started", but you can call
         // it anything you want
@@ -132,7 +142,7 @@ public class OTExampleActivity extends Activity {
         super.onPause();
         Log.v(TAG, "onPause()");
         OTLogService.sendEvent("onPause() called");
-        // Close the session and upload the events. The onPause method is
+        // uploads the events. The onPause method is
         // guaranteed to be called in the life cycle of an Android App.
         OTLogService.onPause();
     }

@@ -350,6 +350,46 @@ public class OTFileUtils {
         }
     }
 
+    public long getFileSize(String fileName) throws IOException {
+        return getFileSize(sessionStateDirectory, fileName);
+    }
+
+    /**
+     * Method to get the size of the file line is in the array.
+     * 
+     * @param pathName
+     *            The path to use relative to the apps context, eg. "/OTUpload/"
+     * 
+     * @param fileName
+     *            The file name to read
+     * @return
+     * @throws IOException
+     */
+    public long getFileSize(String pathName, String fileName)
+            throws IOException {
+
+        long t0 = System.currentTimeMillis();
+
+        Log.v(TAG, "getFileSize(String pathName, String fileName)");
+
+        if (pathName == null || fileName == null) {
+            Log.e(TAG, "Unable to make, get or create file: " + fileName
+                    + " with pathName: " + pathName);
+            throw new IOException("pathName and/ or fileName is null");
+        }
+
+        String internalPath = appContext.getFilesDir() + pathName;
+        File file = new File(internalPath + fileName);
+
+        // Get the number of bytes in the file
+        long length = file.length();
+
+        t0 = System.currentTimeMillis() - t0;
+        Log.d(TAG, t0 + "[ms]");
+
+        return length;
+    }
+
     /**
      * Method to read a file and get its contents as a string array, where each
      * line is in the array.

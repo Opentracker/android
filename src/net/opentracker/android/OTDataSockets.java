@@ -44,7 +44,8 @@ public class OTDataSockets {
     @SuppressWarnings("unchecked")
     private static HashMap cacheType = new HashMap();
 
-    private static final long EXPIRE_MS = 1 * 1000l * 60l;
+    // ten seconds
+    private static final long EXPIRE_MS = 0l;// = 1 / 6 * 1000l * 60l;
 
     // private static OTLocationService locationService = null;
 
@@ -173,6 +174,13 @@ public class OTDataSockets {
             NetworkInfo activeNetworkInfo =
                     connectivityManager.getActiveNetworkInfo();
 
+            if (activeNetworkInfo == null) {
+                cacheType.put("networkType", "no network");
+                cacheType.put("last modified time", System.currentTimeMillis());
+                t0 = System.currentTimeMillis() - t0;
+                Log.d(TAG, t0 + "[ms]");
+                return (String) cacheType.get("networkType");
+            }
             String networkInfoTypeName = activeNetworkInfo.getTypeName();
             if (networkInfoTypeName.equalsIgnoreCase("wifi")) {
                 networkInfoTypeName = "Wi-Fi";
