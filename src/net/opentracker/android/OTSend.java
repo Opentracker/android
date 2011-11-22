@@ -165,7 +165,7 @@ public class OTSend {
                     (Map.Entry<String, String>) it.next();
             pairs.add(new BasicNameValuePair(pair.getKey(), pair.getValue()));
             if (pair.getKey().equals("ots") || pair.getKey().equals("otui"))
-                Log.e(TAG, pair.getKey() + " = " + pair.getValue());
+                Log.v(TAG, pair.getKey() + " = " + pair.getValue());
             else
                 Log.v(TAG, pair.getKey() + " = " + pair.getValue());
 
@@ -189,13 +189,13 @@ public class OTSend {
 
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
-            Log.e(TAG, "Failed:" + e);
+            Log.w(TAG, "Failed:" + e);
         } catch (IOException e) {
             e.printStackTrace();
-            Log.e(TAG, "Failed:" + e);
+            Log.w(TAG, "Failed:" + e);
         } catch (ParseException e) {
             e.printStackTrace();
-            Log.e(TAG, "Failed:" + e);
+            Log.w(TAG, "Failed:" + e);
         }
         return responseText;
     }
@@ -290,10 +290,10 @@ public class OTSend {
             dos.close();
 
         } catch (MalformedURLException ex) {
-            Log.e(TAG, "From ServletCom CLIENT REQUEST: " + ex);
+            Log.w(TAG, "From ServletCom CLIENT REQUEST: " + ex);
             return false;
         } catch (IOException ioe) {
-            Log.e(TAG, "From ServletCom CLIENT REQUEST: " + ioe);
+            Log.w(TAG, "From ServletCom CLIENT REQUEST: " + ioe);
             return false;
         }
 
@@ -308,7 +308,7 @@ public class OTSend {
             return true;
 
         } catch (IOException ioex) {
-            Log.e(TAG, "Server response: " + ioex);
+            Log.w(TAG, "Server response: " + ioex);
             return false;
         }
 

@@ -27,19 +27,19 @@ import android.util.Log;
  * debugging information for Opentracker's logging/ analytics engines.
  * 
  * @author $Author: eddie $
- * @version $Id: OTSvnVersion.java 13226 2011-09-23 09:04:45Z eddie $
+ * @version $Id: OTSvnVersion.java 13569 2011-11-22 22:01:15Z eddie $
  */
-public final class OTSvnVersion {
+public final class OTSvnVersion { 
 
     private static final String TAG = OTSvnVersion.class.getName();
 
     // SVN should fill this out with the latest tag when it's checked out:
     // http://stackoverflow.com/questions/690419/build-and-version-numbering-for-java-projects-ant-cvs-hudson
     // http://stackoverflow.com/questions/2295661/fill-version-tag-with-subversion-in-eclipse
-    private static final String SVN_REVISION_RAW = "$Revision: 13226 $";
+    private static final String SVN_REVISION_RAW = "$Revision: 13569 $";
 
     private static final String SVN_LASTCHANGEDDATE_RAW =
-            "$Date: 2011-09-23 11:04:45 +0200 (Fri, 23 Sep 2011) $";
+            "$Date: 2011-11-22 23:01:15 +0100 (Tue, 22 Nov 2011) $";
 
     private static final String SVN_REVISION =
             SVN_REVISION_RAW.replaceAll("\\$Revision:\\s*", "").replaceAll(

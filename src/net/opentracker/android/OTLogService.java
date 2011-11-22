@@ -26,7 +26,6 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URLEncoder;
 import java.net.UnknownHostException;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -108,7 +107,7 @@ public class OTLogService {
             otFileUtil.makeFile(OTFileUtils.UPLOAD_PATH, "fileToSend");
             otFileUtil.appendToFile(OTFileUtils.UPLOAD_PATH, "fileToSend", url);
         } catch (IOException e) {
-            Log.i(TAG, "Exception while appending data to file: " + e);
+            Log.e(TAG, "Exception while appending data to file: " + e);
 
             HashMap<String, String> logMap = new HashMap<String, String>();
             logMap.put("si", "errors"); // log to error appName
@@ -141,8 +140,11 @@ public class OTLogService {
      * Uploads the data file to logging servers. If no data (file size is zero)
      * or networkType is "no network", then this method immediately returns,
      * doing nothing.
+     * 
+     * Method is synchronized with processEvent(). This is to ensure that two
+     * threads will not process network/ information events.
      */
-    private static void compressAndUploadData() {
+    private synchronized static void compressAndUploadData() {
 
         long fileSizeBytes = 0;
 
@@ -155,13 +157,14 @@ public class OTLogService {
         }
 
         if (fileSizeBytes != 0) {
-            Log.e(TAG, "compressAndUploadData()");
+            Log.v(TAG, "compressAndUploadData()");
         } else {
-            Log.e(TAG, "compressAndUploadData() escaping/ empty file");
+            Log.v(TAG, "compressAndUploadData() escaping/ empty file");
             return;
         }
 
-        if (OTDataSockets.getNetworkType(appContext).equals("no network")) {
+        if (OTDataSockets.getNetworkType(appContext).equals(
+                OTDataSockets.NO_NETWORK)) {
             Log.e(TAG, "compressAndUploadData() escaping/ no network");
             // no network, can't upload
             return;
@@ -173,15 +176,21 @@ public class OTLogService {
          * OTSend.send(fileContents[i]);
          */
         // String[] fileContents;
+
+        Log.w(TAG, "compressAndUploadData() entering...");
+
         try {
-            // fileContents = otFileUtil.readFileLines("OTDir", "fileToSend");
-            // Log.i(TAG, "Http requests in the file: " + fileContents.length);
+
+            // remove any hanging files
+            otFileUtil.removeFile(OTFileUtils.UPLOAD_PATH, "fileToSend.gz");
+
+            // Log.e(TAG, "1 "
+            // + otFileUtil.listFiles(OTFileUtils.UPLOAD_PATH).length);
 
             otFileUtil.compressFile(OTFileUtils.UPLOAD_PATH, "fileToSend");
 
-            // HashMap<String, String> map = new HashMap<String, String>();
-            // map.put("zip", otFileUtil.readFile(OTFileUtils.UPLOAD_PATH,
-            // "fileToSend.gz"));
+            // Log.e(TAG, "2 "
+            // + otFileUtil.listFiles(OTFileUtils.UPLOAD_PATH).length);
 
             long time1 = System.currentTimeMillis();
             boolean success =
@@ -190,22 +199,25 @@ public class OTLogService {
                             "fileToSend.gz");
 
             long time2 = System.currentTimeMillis();
-            Log.i(TAG, "Time taken to response:" + (time2 - time1));
+            Log.v(TAG, "Time taken to upload: " + (time2 - time1) + " [ms]");
             if (success) {
+                Log.v(TAG, "Clearing files");
+
                 otFileUtil.removeFile(OTFileUtils.UPLOAD_PATH, "fileToSend.gz");
                 otFileUtil.emptyFile(OTFileUtils.UPLOAD_PATH, "fileToSend");
-                Log.i(TAG, "cleared file");
             } else {
+                Log.i(TAG, "File upload did not succeed, re-appending!");
                 otFileUtil.removeFile(OTFileUtils.UPLOAD_PATH, "fileToSend.gz");
-                Log.i(TAG, "File did not empty!");
             }
         } catch (FileNotFoundException fnfe) {
             // nothing to do
-            Log.i(TAG, "File not found!");
+            Log.e(TAG, "File not found!");
         } catch (IOException e) {
-            Log.i(TAG, "IOException!");
-            e.printStackTrace();
+            Log.e(TAG, "IOException!");
+            // e.printStackTrace();
         }
+        // Log.e(TAG, "3 " +
+        // otFileUtil.listFiles(OTFileUtils.UPLOAD_PATH).length);
 
     }
 
@@ -214,9 +226,9 @@ public class OTLogService {
     }
 
     /**
-     * Get the app name being logged being logged by Opentracker's logging/
-     * analytics engines for an Android device, this will be the app name you
-     * have registered at Opentracker's website.
+     * Get the app name being logged by Opentracker's logging/ analytics engines
+     * for an Android device, this will be the app name you have registered at
+     * Opentracker's website.
      * 
      * @return The app name
      */
@@ -256,8 +268,7 @@ public class OTLogService {
     }
 
     public static void onPause() {
-        Log.e(TAG, "onPause()");
-
+        Log.v(TAG, "onPause()");
         compressAndUploadDataTask();
     }
 
@@ -278,7 +289,7 @@ public class OTLogService {
      * 
      * @return then number of events in current session
      */
-    private synchronized static int registerSessionEvent() {
+    private static int registerSessionEvent() {
         Log.v(TAG, "registerSessionEvent()");
 
         // make the users data file
@@ -297,7 +308,7 @@ public class OTLogService {
         try {
             otFileUtil.makeFile("ots");
         } catch (IOException e) {
-            Log.v(TAG, "Can't make file ots");
+            Log.e(TAG, "Can't make file ots");
             HashMap<String, String> logMap = new HashMap<String, String>();
             logMap.put("si", "errors"); // log to error appName
             logMap.put("message", "Can't make file ots");
@@ -350,7 +361,7 @@ public class OTLogService {
             if (userData.length != 6) {
 
                 // handle corruption use initialized values
-                Log.i(TAG, "Data is corrupted length: " + userData.length
+                Log.w(TAG, "Data is corrupted length: " + userData.length
                         + ", userData:" + otUserData);
 
                 HashMap<String, String> logMap = new HashMap<String, String>();
@@ -392,7 +403,7 @@ public class OTLogService {
 
                 } catch (Exception e) {
 
-                    Log.i(TAG, "otui has corrupted data: " + e);
+                    Log.w(TAG, "otui has corrupted data: " + e);
 
                     HashMap<String, String> logMap =
                             new HashMap<String, String>();
@@ -446,15 +457,17 @@ public class OTLogService {
                     previousEventUnixTimestamp = Long.parseLong(sessionData[3]);
                     long diff =
                             (currentUnixTimestampMs - previousEventUnixTimestamp);
-                    Log.e(TAG, "Got: " + diff + "[ms]");
-                    Log.e(TAG, "Got currentUnixTimestampMs: "
-                            + currentUnixTimestampMs + "[ms]");
-                    Log.e(TAG, "Got previousEventUnixTimestamp: "
-                            + previousEventUnixTimestamp + "[ms]");
+
+                    // Log.e(TAG, "Got: " + diff + "[ms]");
+                    // Log.e(TAG, "Got currentUnixTimestampMs: "
+                    // + currentUnixTimestampMs + "[ms]");
+                    // Log.e(TAG, "Got previousEventUnixTimestamp: "
+                    // + previousEventUnixTimestamp + "[ms]");
+
                     // make sure we have a ongoing session
                     if (diff < sessionLapseTimeMs) {
 
-                        Log.e(TAG, "Continuing starting.");
+                        Log.i(TAG, "Continuing session.");
 
                         // ongoing session, parse the session data
                         sessionEventCount = Integer.parseInt(sessionData[0]);
@@ -472,7 +485,7 @@ public class OTLogService {
 
                 } catch (Exception e) {
 
-                    Log.i(TAG, "ots has corrupted data: " + e);
+                    Log.w(TAG, "ots has corrupted data: " + e);
 
                     HashMap<String, String> logMap =
                             new HashMap<String, String>();
@@ -489,7 +502,7 @@ public class OTLogService {
 
         // do the work, to register new session
         if (isNewSession) {
-            Log.e(TAG, "Updating data with new session.");
+            Log.i(TAG, "Updating data with new session.");
             previousSessionStartUnixTimestamp =
                     currentSessionStartUnixTimestamp;
             currentSessionStartUnixTimestamp = currentUnixTimestampMs;
@@ -502,17 +515,18 @@ public class OTLogService {
                         + currentUnixTimestampMs;
 
         try {
-            Log.e(TAG, "Writing session: " + otSessionData);
-            Log.e(TAG, "Writing current: " + currentUnixTimestampMs);
-            Log.e(TAG, "Writing previous: " + previousEventUnixTimestamp);
-            Log.e(TAG, "Writing current: " + new Date(currentUnixTimestampMs));
-            Log.e(TAG, "Writing previous: "
-                    + new Date(previousEventUnixTimestamp));
+            // Log.e(TAG, "Writing session: " + otSessionData);
+            // Log.e(TAG, "Writing current: " + currentUnixTimestampMs);
+            // Log.e(TAG, "Writing previous: " + previousEventUnixTimestamp);
+            // Log.e(TAG, "Writing current: " + new
+            // Date(currentUnixTimestampMs));
+            // Log.e(TAG, "Writing previous: "
+            // + new Date(previousEventUnixTimestamp));
 
             otFileUtil.writeFile("ots", otSessionData);
         } catch (IOException e) {
 
-            Log.i(TAG, "Exception while writing to ots: " + e);
+            Log.w(TAG, "Exception while writing to ots: " + e);
 
             HashMap<String, String> logMap = new HashMap<String, String>();
             logMap.put("si", "errors"); // log to error appName
@@ -520,7 +534,7 @@ public class OTLogService {
             OTSend.send(logMap);
 
         }
-        Log.i(TAG, "ots write: " + otSessionData);
+        Log.v(TAG, "ots write: " + otSessionData);
 
         // format the otUserData
         otUserData =
@@ -531,10 +545,10 @@ public class OTLogService {
 
         // write the otUserData
         try {
-            Log.e(TAG, "Writing user: " + otUserData);
+            Log.v(TAG, "Writing user: " + otUserData);
             otFileUtil.writeFile("otui", otUserData);
         } catch (IOException e) {
-            Log.i(TAG, "Exception while writing to otui: " + e);
+            Log.w(TAG, "Exception while writing to otui: " + e);
 
             HashMap<String, String> logMap = new HashMap<String, String>();
             logMap.put("si", "errors"); // log to error appName
@@ -562,33 +576,41 @@ public class OTLogService {
     public static void sendEvent(String eventName,
             HashMap<String, String> keyValuePairs,
             boolean appendSessionStateData) {
+        long t0 = System.currentTimeMillis();
         Log.v(TAG, "sendEvent(" + eventName + ",  " + appendSessionStateData
                 + ", " + keyValuePairs + ")");
 
         // if we are on wifi then start separate thread otherwise
-        if (OTDataSockets.getNetworkType(appContext).equalsIgnoreCase("wi-fi")) {
+        if (OTDataSockets.getNetworkType(appContext).equalsIgnoreCase(
+                OTDataSockets.WIFI)) {
 
             // use this wifi event to upload the file
             if (isFirstWiFiEvent) {
                 compressAndUploadDataTask();
                 isFirstWiFiEvent = false;
             }
-            sendTask(eventName, keyValuePairs, appendSessionStateData);
 
         } else {
             // make sure the next wifi event will trigger as a first wifi event
             isFirstWiFiEvent = true;
-            processEvent(eventName, keyValuePairs, appendSessionStateData);
 
         }
+        sendTask(eventName, keyValuePairs, appendSessionStateData);
+
+        t0 = System.currentTimeMillis() - t0;
+        Log.v(TAG, t0 + "[ms]");
 
     }
 
+    /*
+     * Method is synchronized with compressAndUploadData. This is to ensure that
+     * two threads will not process network/ information events.
+     */
     private synchronized static final void processEvent(String eventName,
             HashMap<String, String> keyValuePairs,
             boolean appendSessionStateData) {
 
-        Log.v(TAG, "processEvent(" + eventName + ",  " + appendSessionStateData
+        Log.w(TAG, "processEvent(" + eventName + ",  " + appendSessionStateData
                 + ", " + keyValuePairs + ")");
 
         if (keyValuePairs == null)
@@ -606,8 +628,9 @@ public class OTLogService {
             keyValuePairs.put("ti", eventName);
         }
         // update the sessionData
-        int eventCount = registerSessionEvent();
-        Log.d(TAG, "eventCount: " + eventCount);
+        // int eventCount =
+        registerSessionEvent();
+        // Log.v(TAG, "eventCount: " + eventCount);
 
         keyValuePairs.put("si", appName);
         keyValuePairs.put("platform", OTDataSockets.getPlatform());
@@ -643,7 +666,7 @@ public class OTLogService {
                 dataFiles = otFileUtil.getSessionStateDataPairs();
             } catch (IOException e) {
 
-                Log.i(TAG, "Exception while getting fileName data pairs");
+                Log.w(TAG, "Exception while getting fileName data pairs");
 
                 HashMap<String, String> logMap = new HashMap<String, String>();
                 logMap.put("si", "errors"); // log to error appName
@@ -655,21 +678,21 @@ public class OTLogService {
                 keyValuePairs.putAll(dataFiles);
         }
 
-        // TODO: work out logic of appending data to file
-        Log.v(TAG, "directSend: " + directSend + ", "
-                + OTDataSockets.getNetworkType(appContext));
+        // done: worked out logic of appending data to file
+        // Log.v(TAG, "directSend: " + directSend + ", "
+        // + OTDataSockets.getNetworkType(appContext));
         try {
             if (OTDataSockets.getNetworkType(appContext).equalsIgnoreCase(
-                    "wi-fi")) {
-                Log.e(TAG, "sending: " + keyValuePairs);
+                    OTDataSockets.WIFI)) {
+                Log.i(TAG, "sending: " + keyValuePairs);
 
                 OTSend.send(keyValuePairs);
             } else if (directSend) {
-                Log.e(TAG, "sending: " + keyValuePairs);
+                Log.i(TAG, "sending: " + keyValuePairs);
 
                 OTSend.send(keyValuePairs);
             } else {
-                Log.e(TAG, "appending: " + keyValuePairs);
+                Log.i(TAG, "appending: " + keyValuePairs);
 
                 appendDataToFile(keyValuePairs);
             }
@@ -678,10 +701,10 @@ public class OTLogService {
             try {
                 appendDataToFile(keyValuePairs);
             } catch (IOException e1) {
-                // TODO: ignore
+                // done: ignore
             }
         } catch (Exception e) {
-            Log.i(TAG, "Exception while appending data to file: " + e);
+            Log.w(TAG, "Exception while appending data to file: " + e);
 
             HashMap<String, String> logMap = new HashMap<String, String>();
             logMap.put("si", "errors"); // log to error appName
