@@ -22,7 +22,6 @@ package net.opentracker.android;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
-import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 
@@ -34,6 +33,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.WindowManager;
 import android.webkit.WebView;
@@ -49,11 +49,11 @@ public class OTDataSockets {
 
     public static final String NO_NETWORK = "no network";
 
-    public static final String WIFI = "Wi-Fi";
+    private static final String TAG = OTDataSockets.class.getName();
 
     // private static OTLocationService locationService = null;
 
-    private static final String TAG = OTDataSockets.class.getName();
+    public static final String WIFI = "Wi-Fi";
 
     /**
      * Gets the pretty string for this application's version.
@@ -78,6 +78,148 @@ public class OTDataSockets {
             t0 = System.currentTimeMillis() - t0;
             Log.v(TAG, t0 + "[ms]");
             return "unknown";
+        }
+    }
+
+    public static String getCoordinateAccuracy(final Context appContext) {
+        long t0 = System.currentTimeMillis();
+        Log.v(TAG, "getLastCoordinates()");
+
+        LocationManager locationManager =
+                (LocationManager) appContext
+                        .getSystemService(Context.LOCATION_SERVICE);
+
+        // try to get the latest
+        Location tmpLocation =
+                locationManager
+                        .getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+
+        if (tmpLocation != null) {
+
+            String value = "" + tmpLocation.getAccuracy();
+            // Log.v(TAG, "getLastCoordinates: " + coordinates + "; "
+            // + new Date(tmpLocation.getTime()));
+            // t0 = System.currentTimeMillis() - t0;
+            // Log.v(TAG, t0 + "[ms]");
+
+            // dont return default 0,0 values sometimes seen
+            if (tmpLocation.getLatitude() != 0f
+                    && tmpLocation.getLongitude() != 0) {
+                return value;
+            } else {
+                return null;
+            }
+        } else {
+            Log.v(TAG, t0 + "[ms]");
+            return null;
+        }
+    }
+
+    public static String getCoordinateLatitude(final Context appContext) {
+        long t0 = System.currentTimeMillis();
+        Log.v(TAG, "getLastCoordinates()");
+
+        LocationManager locationManager =
+                (LocationManager) appContext
+                        .getSystemService(Context.LOCATION_SERVICE);
+
+        // try to get the latest
+        Location tmpLocation =
+                locationManager
+                        .getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+
+        if (tmpLocation != null) {
+
+            String value = "" + tmpLocation.getLatitude();
+
+            // Log.v(TAG, "tmpLocation.getAccuracy: " +
+            // tmpLocation.getAccuracy());
+            // Log.v(TAG, "getLastCoordinates: " + coordinates + "; "
+            // + new Date(tmpLocation.getTime()));
+            // t0 = System.currentTimeMillis() - t0;
+            // Log.v(TAG, t0 + "[ms]");
+
+            // dont return default 0,0 values sometimes seen
+            if (tmpLocation.getLatitude() != 0f
+                    && tmpLocation.getLongitude() != 0) {
+                return value;
+            } else {
+                return null;
+            }
+        } else {
+            Log.v(TAG, t0 + "[ms]");
+            return null;
+        }
+    }
+
+    public static String getCoordinateLongitude(final Context appContext) {
+        long t0 = System.currentTimeMillis();
+        Log.v(TAG, "getLastCoordinates()");
+
+        LocationManager locationManager =
+                (LocationManager) appContext
+                        .getSystemService(Context.LOCATION_SERVICE);
+
+        // try to get the latest
+        Location tmpLocation =
+                locationManager
+                        .getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+
+        if (tmpLocation != null) {
+
+            String value = "" + tmpLocation.getLongitude();
+
+            // Log.v(TAG, "tmpLocation.getAccuracy: " +
+            // tmpLocation.getAccuracy());
+            // Log.v(TAG, "getLastCoordinates: " + coordinates + "; "
+            // + new Date(tmpLocation.getTime()));
+            // t0 = System.currentTimeMillis() - t0;
+            // Log.v(TAG, t0 + "[ms]");
+
+            // dont return default 0,0 values sometimes seen
+            if (tmpLocation.getLatitude() != 0f
+                    && tmpLocation.getLongitude() != 0) {
+                return value;
+            } else {
+                return null;
+            }
+        } else {
+            Log.v(TAG, t0 + "[ms]");
+            return null;
+        }
+    }
+
+    public static String getCoordinateTime(final Context appContext) {
+        long t0 = System.currentTimeMillis();
+        Log.v(TAG, "getLastCoordinates()");
+
+        LocationManager locationManager =
+                (LocationManager) appContext
+                        .getSystemService(Context.LOCATION_SERVICE);
+
+        // try to get the latest
+        Location tmpLocation =
+                locationManager
+                        .getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+
+        if (tmpLocation != null) {
+
+            String value = "" + tmpLocation.getTime();
+            // Log.v(TAG, "getLastCoordinates: " + coordinates + "; "
+            // + new Date(tmpLocation.getTime()));
+            // t0 = System.currentTimeMillis() - t0;
+            // Log.v(TAG, t0 + "[ms]");
+
+            // dont return default 0,0 values sometimes seen
+            if (tmpLocation.getLatitude() != 0f
+                    && tmpLocation.getLongitude() != 0) {
+                return value;
+            } else {
+                return null;
+            }
+        } else {
+            Log.v(TAG, t0 + "[ms]");
+            return null;
         }
     }
 
@@ -116,40 +258,25 @@ public class OTDataSockets {
         return null;
     }
 
-    public static String getLastCoordinates(final Context appContext) {
-        long t0 = System.currentTimeMillis();
-        Log.v(TAG, "getLastCoordinates()");
+    /**
+     * http://stackoverflow.com/questions/4212320/get-the-current-language-in-
+     * device
+     */
+    public static String getLocale(final Context appContext) {
+        return appContext.getResources().getConfiguration().locale.toString();
+    }
 
-        LocationManager locationManager =
-                (LocationManager) appContext
-                        .getSystemService(Context.LOCATION_SERVICE);
-
-        // try to get the latest
-        Location tmpLocation =
-                locationManager
-                        .getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-
-        if (tmpLocation != null) {
-
-            String coordinates =
-                    tmpLocation.getLatitude() + ", "
-                            + tmpLocation.getLongitude();
-
-            Log.v(TAG, "tmpLocation.getAccuracy: " + tmpLocation.getAccuracy());
-            Log.v(TAG, "getLastCoordinates: " + coordinates + "; "
-                    + new Date(tmpLocation.getTime()));
-            t0 = System.currentTimeMillis() - t0;
-            Log.v(TAG, t0 + "[ms]");
-
-            // dont return default 0,0 values sometimes seen
-            if (tmpLocation.getLatitude() != 0f
-                    && tmpLocation.getLongitude() != 0) {
-                return coordinates;
-            } else {
-                return null;
-            }
+    /**
+     * http://stackoverflow.com/questions/3838602/how-to-find-out-carriers-name-
+     * in-android
+     */
+    public static String getCarrier(final Context appContext) {
+        TelephonyManager manager =
+                (TelephonyManager) appContext
+                        .getSystemService(Context.TELEPHONY_SERVICE);
+        if (manager != null) {
+            return manager.getNetworkOperatorName();
         } else {
-            Log.v(TAG, t0 + "[ms]");
             return null;
         }
     }

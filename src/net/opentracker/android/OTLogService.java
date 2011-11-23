@@ -647,18 +647,35 @@ public class OTLogService {
                 + eventName.replace('/', '.'));
 
         // debug
-        String[] userData = null;
-        try {
-            userData = otFileUtil.readFile("otui").split("\\.");
-        } catch (IOException e) {
+        // String[] userData = null;
+        // try {
+        // userData = otFileUtil.readFile("otui").split("\\.");
+        // } catch (IOException e) {
+        // }
+        // int lifeTimeEventCount = Integer.parseInt(userData[5]);
+        //
+        // keyValuePairs.put("ti", eventName + " (" + lifeTimeEventCount + ")");
+
+        String location = OTDataSockets.getCoordinateLatitude(appContext);
+        if (location != null) {
+            keyValuePairs.put("latitude", location);
+            keyValuePairs.put("longitude", OTDataSockets
+                    .getCoordinateLongitude(appContext));
+            keyValuePairs.put("coordinateAccuracy", OTDataSockets
+                    .getCoordinateAccuracy(appContext));
+            keyValuePairs.put("coordinateTime", OTDataSockets
+                    .getCoordinateTime(appContext));
         }
-        int lifeTimeEventCount = Integer.parseInt(userData[5]);
 
-        keyValuePairs.put("ti", eventName + " (" + lifeTimeEventCount + ")");
+        String locale = OTDataSockets.getLocale(appContext);
+        if (locale != null) {
+            keyValuePairs.put("locale", locale);
+        }
 
-        String location = OTDataSockets.getLastCoordinates(appContext);
-        if (location != null)
-            keyValuePairs.put("location", location);
+        String isp = OTDataSockets.getCarrier(appContext);
+        if (isp != null) {
+            keyValuePairs.put("isp", isp);
+        }
 
         if (appendSessionStateData) {
             HashMap<String, String> dataFiles = null;
