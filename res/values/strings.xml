@@ -5,5 +5,5 @@
     <string name="clickEvent">Send tag</string>
     <string name="clickCheckBox">Click to generate a tracking event</string>
     <string name="clickSilde">Move slider to generate a tracking event:</string>
-    <string name="defaultText">[enter name]</string>
+    <string name="defaultText">[enter test msg]</string>
 </resources>
