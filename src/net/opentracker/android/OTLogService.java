@@ -51,8 +51,14 @@ public class OTLogService {
 
     private static Handler handler = new Handler();
 
+    private static final Object lock = new Object();
+
     // flag the first wifi event, to upload compressed data
     private static boolean isFirstWiFiEvent = true;
+
+    // the time to wait after uploading the file to ensure that everything gets
+    // processed before sending the next request
+    private static final int GRACE_PERIOD_UPLOAD_MS = 10000;
 
     private static OTFileUtils otFileUtil;
 
@@ -141,89 +147,105 @@ public class OTLogService {
      * or networkType is "no network", then this method immediately returns,
      * doing nothing.
      * 
-     * Method is synchronized with processEvent(). This is to ensure that two
-     * threads will not process network/ information events.
+     * Method is synchronized with processEvent() through a private lock object.
+     * This is to ensure that two threads will not process network/ information
+     * events.
      */
-    private synchronized static void compressAndUploadData() {
+    private static void compressAndUploadData() {
 
-        long fileSizeBytes = 0;
+        synchronized (lock/* Get */) {
 
-        try {
-            fileSizeBytes =
-                    otFileUtil.getFileSize(OTFileUtils.UPLOAD_PATH,
-                            "fileToSend");
-        } catch (IOException e) {
-            // ignore
-        }
+            long fileSizeBytes = 0;
 
-        if (fileSizeBytes != 0) {
-            Log.v(TAG, "compressAndUploadData()");
-        } else {
-            Log.v(TAG, "compressAndUploadData() escaping/ empty file");
-            return;
-        }
-
-        if (OTDataSockets.getNetworkType(appContext).equals(
-                OTDataSockets.NO_NETWORK)) {
-            Log.e(TAG, "compressAndUploadData() escaping/ no network");
-            // no network, can't upload
-            return;
-        }
-
-        /*
-         * String[] fileContents = otFileUtil.readFileByLine("OTDir",
-         * "fileToSend"); for (int i = 0; i < fileContents.length; i++)
-         * OTSend.send(fileContents[i]);
-         */
-        // String[] fileContents;
-
-        Log.w(TAG, "compressAndUploadData() entering...");
-
-        try {
-
-            // remove any hanging files
-            otFileUtil.removeFile(OTFileUtils.UPLOAD_PATH, "fileToSend.gz");
-
-            // Log.e(TAG, "1 "
-            // + otFileUtil.listFiles(OTFileUtils.UPLOAD_PATH).length);
-
-            otFileUtil.compressFile(OTFileUtils.UPLOAD_PATH, "fileToSend");
-
-            // Log.e(TAG, "2 "
-            // + otFileUtil.listFiles(OTFileUtils.UPLOAD_PATH).length);
-
-            long time1 = System.currentTimeMillis();
-            boolean success =
-                    OTSend.uploadFile(otFileUtil
-                            .getInternalPath(OTFileUtils.UPLOAD_PATH),
-                            "fileToSend.gz");
-
-            long time2 = System.currentTimeMillis();
-            Log.v(TAG, "Time taken to upload: " + (time2 - time1) + " [ms]");
-            if (success) {
-                Log.v(TAG, "Clearing files");
-
-                otFileUtil.removeFile(OTFileUtils.UPLOAD_PATH, "fileToSend.gz");
-                otFileUtil.emptyFile(OTFileUtils.UPLOAD_PATH, "fileToSend");
-            } else {
-                Log.i(TAG, "File upload did not succeed, re-appending!");
-                otFileUtil.removeFile(OTFileUtils.UPLOAD_PATH, "fileToSend.gz");
+            try {
+                fileSizeBytes =
+                        otFileUtil.getFileSize(OTFileUtils.UPLOAD_PATH,
+                                "fileToSend");
+            } catch (IOException e) {
+                // ignore
             }
-        } catch (FileNotFoundException fnfe) {
-            // nothing to do
-            Log.e(TAG, "File not found!");
-        } catch (IOException e) {
-            Log.e(TAG, "IOException!");
-            // e.printStackTrace();
-        }
-        // Log.e(TAG, "3 " +
-        // otFileUtil.listFiles(OTFileUtils.UPLOAD_PATH).length);
 
+            if (fileSizeBytes != 0) {
+                Log.v(TAG, "compressAndUploadData()");
+            } else {
+                Log.v(TAG, "compressAndUploadData() escaping/ empty file");
+                return;
+            }
+
+            if (OTDataSockets.getNetworkType(appContext).equals(
+                    OTDataSockets.NO_NETWORK)) {
+                Log.e(TAG, "compressAndUploadData() escaping/ no network");
+                // no network, can't upload
+                return;
+            }
+
+            /*
+             * String[] fileContents = otFileUtil.readFileByLine("OTDir",
+             * "fileToSend"); for (int i = 0; i < fileContents.length; i++)
+             * OTSend.send(fileContents[i]);
+             */
+            // String[] fileContents;
+
+            Log.w(TAG, "compressAndUploadData() entering...");
+
+            try {
+
+                // remove any hanging files
+                otFileUtil.removeFile(OTFileUtils.UPLOAD_PATH, "fileToSend.gz");
+
+                // Log.e(TAG, "1 "
+                // + otFileUtil.listFiles(OTFileUtils.UPLOAD_PATH).length);
+
+                otFileUtil.compressFile(OTFileUtils.UPLOAD_PATH, "fileToSend");
+
+                // Log.e(TAG, "2 "
+                // + otFileUtil.listFiles(OTFileUtils.UPLOAD_PATH).length);
+
+                long time1 = System.currentTimeMillis();
+                boolean success =
+                        OTSend.uploadFile(otFileUtil
+                                .getInternalPath(OTFileUtils.UPLOAD_PATH),
+                                "fileToSend.gz");
+
+                long time2 = System.currentTimeMillis();
+                Log
+                        .v(TAG, "Time taken to upload: " + (time2 - time1)
+                                + " [ms]");
+                if (success) {
+                    Log.v(TAG, "Clearing files");
+
+                    otFileUtil.removeFile(OTFileUtils.UPLOAD_PATH,
+                            "fileToSend.gz");
+                    otFileUtil.emptyFile(OTFileUtils.UPLOAD_PATH, "fileToSend");
+
+                    // wait 10 seconds for things to settle on the server side
+                    // this will block threads using the lock object
+                    try {
+                        Thread.sleep(GRACE_PERIOD_UPLOAD_MS);
+                    } catch (InterruptedException e) {
+                        Log.e(TAG, "InterruptedException: " + e);
+                    }
+
+                } else {
+                    Log.i(TAG, "File upload did not succeed, re-appending!");
+                    otFileUtil.removeFile(OTFileUtils.UPLOAD_PATH,
+                            "fileToSend.gz");
+                }
+            } catch (FileNotFoundException fnfe) {
+                // nothing to do
+                Log.e(TAG, "File not found!");
+            } catch (IOException e) {
+                Log.e(TAG, "IOException!");
+                // e.printStackTrace();
+            }
+            // Log.e(TAG, "3 " +
+            // otFileUtil.listFiles(OTFileUtils.UPLOAD_PATH).length);
+        }// lock
     }
 
-    public static void endSession() {
-        Log.v(TAG, "endSession()");
-    }
+    // public static void endSession() {
+    // Log.v(TAG, "endSession()");
+    // }
 
     /**
      * Get the app name being logged by Opentracker's logging/ analytics engines
@@ -603,131 +625,140 @@ public class OTLogService {
     }
 
     /*
-     * Method is synchronized with compressAndUploadData. This is to ensure that
-     * two threads will not process network/ information events.
+     * Method is synchronized with compressAndUploadData through a private lock
+     * object. This is to ensure that two threads will not process network/
+     * information events.
      */
-    private synchronized static final void processEvent(String eventName,
+    private static final void processEvent(String eventName,
             HashMap<String, String> keyValuePairs,
             boolean appendSessionStateData) {
 
-        Log.w(TAG, "processEvent(" + eventName + ",  " + appendSessionStateData
-                + ", " + keyValuePairs + ")");
+        synchronized (lock/* Get */) {
 
-        if (keyValuePairs == null)
-            keyValuePairs = new HashMap<String, String>();
+            Log.w(TAG, "processEvent(" + eventName + ",  "
+                    + appendSessionStateData + ", " + keyValuePairs + ")");
 
-        // ti is default title tag
-        if (eventName == null) {
-            if (keyValuePairs.get("title") == null) {
-                keyValuePairs.put("ti", "[No title]");
+            if (keyValuePairs == null)
+                keyValuePairs = new HashMap<String, String>();
+
+            // ti is default title tag
+            if (eventName == null) {
+                if (keyValuePairs.get("title") == null) {
+                    keyValuePairs.put("ti", "[No title]");
+                } else {
+                    keyValuePairs.put("ti", keyValuePairs.get("title"));
+                    keyValuePairs.remove("title");
+                }
             } else {
-                keyValuePairs.put("ti", keyValuePairs.get("title"));
-                keyValuePairs.remove("title");
+                keyValuePairs.put("ti", eventName);
             }
-        } else {
-            keyValuePairs.put("ti", eventName);
-        }
-        // update the sessionData
-        // int eventCount =
-        registerSessionEvent();
-        // Log.v(TAG, "eventCount: " + eventCount);
+            // update the sessionData
+            // int eventCount =
+            registerSessionEvent();
+            // Log.v(TAG, "eventCount: " + eventCount);
 
-        keyValuePairs.put("si", appName);
-        keyValuePairs.put("platform", OTDataSockets.getPlatform());
-        keyValuePairs.put("platform version", OTDataSockets
-                .getPlatformVersion());
-        keyValuePairs.put("device", OTDataSockets.getDevice());
-        keyValuePairs.put("connection", OTDataSockets
-                .getNetworkType(appContext));
-        keyValuePairs.put("sh", OTDataSockets.getScreenHeight(appContext));
-        keyValuePairs.put("sw", OTDataSockets.getScreenWidth(appContext));
-        keyValuePairs.put("app version", OTDataSockets
-                .getAppVersion(appContext));
-        keyValuePairs.put("lc", "http://app.opentracker.net/" + appName + "/"
-                + eventName.replace('/', '.'));
+            keyValuePairs.put("si", appName);
+            keyValuePairs.put("platform", OTDataSockets.getPlatform());
+            keyValuePairs.put("platform version", OTDataSockets
+                    .getPlatformVersion());
+            keyValuePairs.put("device", OTDataSockets.getDevice());
+            keyValuePairs.put("connection", OTDataSockets
+                    .getNetworkType(appContext));
+            keyValuePairs.put("sh", OTDataSockets.getScreenHeight(appContext));
+            keyValuePairs.put("sw", OTDataSockets.getScreenWidth(appContext));
+            keyValuePairs.put("app version", OTDataSockets
+                    .getAppVersion(appContext));
+            keyValuePairs.put("lc", "http://app.opentracker.net/" + appName
+                    + "/" + eventName.replace('/', '.'));
 
-        // debug
-        // String[] userData = null;
-        // try {
-        // userData = otFileUtil.readFile("otui").split("\\.");
-        // } catch (IOException e) {
-        // }
-        // int lifeTimeEventCount = Integer.parseInt(userData[5]);
-        //
-        // keyValuePairs.put("ti", eventName + " (" + lifeTimeEventCount + ")");
+            // debug
+//            String[] userData = null;
+//            try {
+//                userData = otFileUtil.readFile("otui").split("\\.");
+//            } catch (IOException e) {
+//            }
+//            int lifeTimeEventCount = Integer.parseInt(userData[5]);
+//
+//            keyValuePairs
+//                    .put("ti", eventName + " (" + lifeTimeEventCount + ")");
 
-        String location = OTDataSockets.getCoordinateLatitude(appContext);
-        if (location != null) {
-            keyValuePairs.put("latitude", location);
-            keyValuePairs.put("longitude", OTDataSockets
-                    .getCoordinateLongitude(appContext));
-            keyValuePairs.put("coordinateAccuracy", OTDataSockets
-                    .getCoordinateAccuracy(appContext));
-            keyValuePairs.put("coordinateTime", OTDataSockets
-                    .getCoordinateTime(appContext));
-        }
+            String location = OTDataSockets.getCoordinateLatitude(appContext);
+            if (location != null) {
+                keyValuePairs.put("latitude", location);
+                keyValuePairs.put("longitude", OTDataSockets
+                        .getCoordinateLongitude(appContext));
+                keyValuePairs.put("coordinateAccuracy", OTDataSockets
+                        .getCoordinateAccuracy(appContext));
+                keyValuePairs.put("coordinateTime", OTDataSockets
+                        .getCoordinateTime(appContext));
+            }
 
-        String locale = OTDataSockets.getLocale(appContext);
-        if (locale != null) {
-            keyValuePairs.put("locale", locale);
-        }
+            String locale = OTDataSockets.getLocale(appContext);
+            if (locale != null) {
+                keyValuePairs.put("locale", locale);
+            }
 
-        String isp = OTDataSockets.getCarrier(appContext);
-        if (isp != null) {
-            keyValuePairs.put("isp", isp);
-        }
+            String isp = OTDataSockets.getCarrier(appContext);
+            if (isp != null) {
+                keyValuePairs.put("isp", isp);
+            }
 
-        if (appendSessionStateData) {
-            HashMap<String, String> dataFiles = null;
+            if (appendSessionStateData) {
+                HashMap<String, String> dataFiles = null;
+                try {
+                    dataFiles = otFileUtil.getSessionStateDataPairs();
+                } catch (IOException e) {
+
+                    Log.w(TAG, "Exception while getting fileName data pairs");
+
+                    HashMap<String, String> logMap =
+                            new HashMap<String, String>();
+                    logMap.put("si", "errors"); // log to error appName
+                    logMap.put("message", getStackTrace(e));
+                    OTSend.send(logMap);
+
+                }
+                if (dataFiles != null)
+                    keyValuePairs.putAll(dataFiles);
+            }
+
+            // done: worked out logic of appending data to file
+            // Log.v(TAG, "directSend: " + directSend + ", "
+            // + OTDataSockets.getNetworkType(appContext));
             try {
-                dataFiles = otFileUtil.getSessionStateDataPairs();
-            } catch (IOException e) {
+                // use success to determine if information was really sent
+                // null if not, otherwise the response string from server
+                String success = null;
+                if (OTDataSockets.getNetworkType(appContext).equalsIgnoreCase(
+                        OTDataSockets.WIFI)) {
+                    Log.i(TAG, "sending: " + keyValuePairs);
 
-                Log.w(TAG, "Exception while getting fileName data pairs");
+                    success = OTSend.send(keyValuePairs);
+                } else if (directSend) {
+                    Log.i(TAG, "sending: " + keyValuePairs);
 
-                HashMap<String, String> logMap = new HashMap<String, String>();
-                logMap.put("si", "errors"); // log to error appName
-                logMap.put("message", getStackTrace(e));
-                OTSend.send(logMap);
+                    success = OTSend.send(keyValuePairs);
+                } else {
+                    Log.i(TAG, "appending: " + keyValuePairs);
+                    success = "yes";
+                    appendDataToFile(keyValuePairs);
+                }
+                if (success == null) {
+                    Log.w(TAG, "appending to file, network down?");
+                    appendDataToFile(keyValuePairs);
 
+                    // TODO try uploading file?
+                }
+
+            } catch (Exception e) {
+                try {
+                    appendDataToFile(keyValuePairs);
+                } catch (IOException e1) {
+                    Log.w(TAG, "appending to file, network errors?");
+                }
             }
-            if (dataFiles != null)
-                keyValuePairs.putAll(dataFiles);
         }
 
-        // done: worked out logic of appending data to file
-        // Log.v(TAG, "directSend: " + directSend + ", "
-        // + OTDataSockets.getNetworkType(appContext));
-        try {
-            if (OTDataSockets.getNetworkType(appContext).equalsIgnoreCase(
-                    OTDataSockets.WIFI)) {
-                Log.i(TAG, "sending: " + keyValuePairs);
-
-                OTSend.send(keyValuePairs);
-            } else if (directSend) {
-                Log.i(TAG, "sending: " + keyValuePairs);
-
-                OTSend.send(keyValuePairs);
-            } else {
-                Log.i(TAG, "appending: " + keyValuePairs);
-
-                appendDataToFile(keyValuePairs);
-            }
-
-        } catch (UnknownHostException e) {
-            try {
-                appendDataToFile(keyValuePairs);
-            } catch (IOException e1) {
-                // done: ignore
-            }
-        } catch (Exception e) {
-            Log.w(TAG, "Exception while appending data to file: " + e);
-
-            HashMap<String, String> logMap = new HashMap<String, String>();
-            logMap.put("si", "errors"); // log to error appName
-            logMap.put("message", getStackTrace(e));
-            OTSend.send(logMap);
-        }
     }
 
     private static void sendTask(final String event,

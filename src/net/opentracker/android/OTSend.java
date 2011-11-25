@@ -31,6 +31,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -74,6 +75,14 @@ public class OTSend {
     private static int bytesRead, bytesAvailable, bufferSize;
 
     private static HttpURLConnection conn = null;
+
+    /*
+     * The default socket timeout (SO_TIMEOUT) in milliseconds which is the
+     * timeout for waiting for data. A timeout value of zero is interpreted as
+     * an infinite timeout. This value is used when no socket timeout is set in
+     * the HTTP method parameters.
+     */
+    private static final int HTTP_SOCKET_TIMEOUT = 3000;
 
     private static final String DEFAULT_LOG_URL = "http://log.opentracker.net/";
 
@@ -153,7 +162,13 @@ public class OTSend {
         // http://hc.apache.org/httpclient-3.x/tutorial.html
         HttpClient client = new DefaultHttpClient();
 
+        // time to wait before throwing timeout exception
+        client.getParams().setParameter("http.socket.timeout",
+                new Integer(HTTP_SOCKET_TIMEOUT));
+
         HttpPost post = new HttpPost(DEFAULT_LOG_URL);
+        post.getParams().setParameter("http.socket.timeout",
+                new Integer(HTTP_SOCKET_TIMEOUT));
 
         Iterator<Entry<String, String>> it =
                 keyValuePairs.entrySet().iterator();
@@ -190,6 +205,9 @@ public class OTSend {
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
             Log.w(TAG, "Failed:" + e);
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+            Log.w(TAG, "Failed:" + e);
         } catch (IOException e) {
             e.printStackTrace();
             Log.w(TAG, "Failed:" + e);
@@ -197,6 +215,7 @@ public class OTSend {
             e.printStackTrace();
             Log.w(TAG, "Failed:" + e);
         }
+        Log.e(TAG, "Got response " + responseText);
         return responseText;
     }
 
