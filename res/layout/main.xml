@@ -1,61 +1,101 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-  xmlns:android="http://schemas.android.com/apk/res/android"
-  android:layout_width="fill_parent"
-  android:layout_height="fill_parent"
-  android:clickable="false" android:orientation="vertical">
-  <TextView
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
-    android:layout_height="wrap_content"
-    android:text="@string/title" android:layout_marginLeft="5dip" android:layout_marginRight="5dip" android:layout_marginTop="20dip" android:layout_marginBottom="5dip"/>
-  <LinearLayout android:id="@+id/linearLayout1" android:layout_width="match_parent" android:layout_height="wrap_content">
+    android:layout_height="fill_parent"
+    android:clickable="false"
+    android:orientation="vertical" >
 
-      <EditText
-          android:id="@+id/exampleEditText"
-          android:layout_width="92dp"
-          android:layout_height="wrap_content"
-          android:layout_gravity="center_horizontal"
-          android:layout_marginBottom="5dip"
-          android:layout_marginLeft="5dip"
-          android:layout_marginRight="5dip"
-          android:layout_marginTop="5dip"
-          android:layout_weight="0.36"
-          android:text="@string/defaultText" >
+    <TextView
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="5dip"
+        android:layout_marginLeft="5dip"
+        android:layout_marginRight="5dip"
+        android:layout_marginTop="20dip"
+        android:text="@string/title" />
 
-          <requestFocus></requestFocus>
-      </EditText>
+    <LinearLayout
+        android:id="@+id/linearLayout1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
 
-      <Button
-          android:id="@+id/exampleButton"
-          android:layout_width="66dp"
-          android:layout_height="wrap_content"
-          android:layout_gravity="center_horizontal"
-          android:layout_margin="5dip"
-          android:layout_weight="0.01"
-          android:clickable="true"
-          android:onClick="clickExampleButton"
-          android:text="@string/clickEvent" >
-</Button>
-  </LinearLayout>
+        <EditText
+            android:id="@+id/exampleEditText"
+            android:layout_width="92dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="5dip"
+            android:layout_marginLeft="5dip"
+            android:layout_marginRight="5dip"
+            android:layout_marginTop="5dip"
+            android:layout_weight="0.36"
+            android:text="@string/exampleEditText" >
 
-  <CheckBox
-      android:id="@+id/exampleCheckBox"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:layout_gravity="center_horizontal"
-      android:layout_marginBottom="5dip"
-      android:layout_marginLeft="5dip"
-      android:layout_marginRight="5dip"
-      android:layout_marginTop="20dip"
-      android:onClick="clickExampleCheckBox"
-      android:text="@string/clickCheckBox" >
-</CheckBox>
-  <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/textView1" android:text="@string/clickSilde" android:layout_marginLeft="5dip" android:layout_marginRight="5dip" android:layout_marginTop="20dip" android:layout_marginBottom="5dip"></TextView>
+            <requestFocus >
+            </requestFocus>
+        </EditText>
 
-  <SeekBar
-      android:id="@+id/exampleSeekBar"
-      android:layout_width="250dp"
-      android:layout_height="wrap_content"
-      android:layout_gravity="center_horizontal" >
-</SeekBar>
+        <Button
+            android:id="@+id/exampleButton"
+            android:layout_width="66dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_margin="5dip"
+            android:layout_weight="0.01"
+            android:clickable="true"
+            android:onClick="clickExampleButton"
+            android:text="@string/exampleButton" >
+        </Button>
+    </LinearLayout>
+
+    <CheckBox
+        android:id="@+id/exampleCheckBox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="5dip"
+        android:layout_marginLeft="5dip"
+        android:layout_marginRight="5dip"
+        android:layout_marginTop="20dip"
+        android:onClick="clickExampleCheckBox"
+        android:text="@string/exampleCheckBox" >
+    </CheckBox>
+
+    <TextView
+        android:id="@+id/exampleClickSilde"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="5dip"
+        android:layout_marginLeft="5dip"
+        android:layout_marginRight="5dip"
+        android:layout_marginTop="20dip"
+        android:text="@string/exampleClickSilde" >
+    </TextView>
+
+    <SeekBar
+        android:id="@+id/exampleSeekBar"
+        android:layout_width="250dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:progress="30"
+        android:thumbOffset="25dp" >
+    </SeekBar>
+
+    <TextView
+        android:id="@+id/exampleSeekBarValue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:text="@android:string/untitled"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+
+    <Button
+        android:id="@+id/exampleViewBehaviorButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_margin="40dp"
+        android:onClick="clickExampleViewBehaviorButton"
+        android:text="@string/exampleViewBehaviorButton" />
+
 </LinearLayout>

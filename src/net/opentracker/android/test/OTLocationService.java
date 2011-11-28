@@ -1,6 +1,5 @@
 package net.opentracker.android.test;
 
-import java.util.Iterator;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -140,9 +139,9 @@ public class OTLocationService {
         }
     }
 
-    private static long delayGpsMs = 20 * 10000; // 20 x seconds * 1000ms
-
-    private static long delayNetworkMs = 5 * 1000; // 20 x seconds * 1000ms
+    // private static long delayGpsMs = 20 * 10000; // 20 x seconds * 1000ms
+    //
+    // private static long delayNetworkMs = 5 * 1000; // 20 x seconds * 1000ms
 
     /*
      * A facility for threads to schedule tasks for future execution in a
@@ -161,7 +160,7 @@ public class OTLocationService {
 
     private static LocationManager locationManager;
 
-    private static long MIN_DISTANCE = 100; // 100 m
+    // private static long MIN_DISTANCE = 100; // 100 m
 
     /*
      * Every 5 * 60 seconds our GPS kicks in and tries to retrieve the location.
@@ -415,7 +414,7 @@ public class OTLocationService {
      * system to do its work.
      */
     public void setDelayGps(long minTimeMs) {
-        this.minTimeMs = minTimeMs;
+        // this.minTimeMs = minTimeMs;
     }
 
     /*
@@ -424,6 +423,6 @@ public class OTLocationService {
      * minTimeMs milliseconds.
      */
     public void setMinTimeMs(long minTimeMs) {
-        this.minTimeMs = minTimeMs;
+        // this.minTimeMs = minTimeMs;
     }
 }

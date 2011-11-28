@@ -34,10 +34,17 @@ import android.net.NetworkInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.telephony.TelephonyManager;
-import android.util.Log;
 import android.view.WindowManager;
 import android.webkit.WebView;
 
+/**
+ * 
+ * This class is provides methods for collecting information about android
+ * devices for Opentracker's logging/ analytics engines.
+ * 
+ * @author $Author: eddie $ (latest svn author)
+ * @version $Id: OTDataSockets.java 13593 2011-11-28 19:24:02Z eddie $
+ */
 public class OTDataSockets {
 
     // TODO: return wifi, mobile or airplane.
@@ -65,25 +72,25 @@ public class OTDataSockets {
     public static String getAppVersion(final Context appContext) {
 
         long t0 = System.currentTimeMillis();
-        Log.v(TAG, "getAppVersion()");
+        LogWrapper.v(TAG, "getAppVersion()");
         PackageManager pm = appContext.getPackageManager();
 
         try {
 
             t0 = System.currentTimeMillis() - t0;
-            Log.v(TAG, t0 + "[ms]");
+            LogWrapper.v(TAG, t0 + "[ms]");
             return pm.getPackageInfo(appContext.getPackageName(), 0).versionName;
         } catch (PackageManager.NameNotFoundException e) {
 
             t0 = System.currentTimeMillis() - t0;
-            Log.v(TAG, t0 + "[ms]");
+            LogWrapper.v(TAG, t0 + "[ms]");
             return "unknown";
         }
     }
 
     public static String getCoordinateAccuracy(final Context appContext) {
         long t0 = System.currentTimeMillis();
-        Log.v(TAG, "getLastCoordinates()");
+        LogWrapper.v(TAG, "getLastCoordinates()");
 
         LocationManager locationManager =
                 (LocationManager) appContext
@@ -97,10 +104,10 @@ public class OTDataSockets {
         if (tmpLocation != null) {
 
             String value = "" + tmpLocation.getAccuracy();
-            // Log.v(TAG, "getLastCoordinates: " + coordinates + "; "
+            // LogWrapper.v(TAG, "getLastCoordinates: " + coordinates + "; "
             // + new Date(tmpLocation.getTime()));
             // t0 = System.currentTimeMillis() - t0;
-            // Log.v(TAG, t0 + "[ms]");
+            // LogWrapper.v(TAG, t0 + "[ms]");
 
             // dont return default 0,0 values sometimes seen
             if (tmpLocation.getLatitude() != 0f
@@ -110,14 +117,14 @@ public class OTDataSockets {
                 return null;
             }
         } else {
-            Log.v(TAG, t0 + "[ms]");
+            LogWrapper.v(TAG, t0 + "[ms]");
             return null;
         }
     }
 
     public static String getCoordinateLatitude(final Context appContext) {
         long t0 = System.currentTimeMillis();
-        Log.v(TAG, "getLastCoordinates()");
+        LogWrapper.v(TAG, "getLastCoordinates()");
 
         LocationManager locationManager =
                 (LocationManager) appContext
@@ -132,12 +139,12 @@ public class OTDataSockets {
 
             String value = "" + tmpLocation.getLatitude();
 
-            // Log.v(TAG, "tmpLocation.getAccuracy: " +
+            // LogWrapper.v(TAG, "tmpLocation.getAccuracy: " +
             // tmpLocation.getAccuracy());
-            // Log.v(TAG, "getLastCoordinates: " + coordinates + "; "
+            // LogWrapper.v(TAG, "getLastCoordinates: " + coordinates + "; "
             // + new Date(tmpLocation.getTime()));
             // t0 = System.currentTimeMillis() - t0;
-            // Log.v(TAG, t0 + "[ms]");
+            // LogWrapper.v(TAG, t0 + "[ms]");
 
             // dont return default 0,0 values sometimes seen
             if (tmpLocation.getLatitude() != 0f
@@ -147,14 +154,14 @@ public class OTDataSockets {
                 return null;
             }
         } else {
-            Log.v(TAG, t0 + "[ms]");
+            LogWrapper.v(TAG, t0 + "[ms]");
             return null;
         }
     }
 
     public static String getCoordinateLongitude(final Context appContext) {
         long t0 = System.currentTimeMillis();
-        Log.v(TAG, "getLastCoordinates()");
+        LogWrapper.v(TAG, "getLastCoordinates()");
 
         LocationManager locationManager =
                 (LocationManager) appContext
@@ -169,12 +176,12 @@ public class OTDataSockets {
 
             String value = "" + tmpLocation.getLongitude();
 
-            // Log.v(TAG, "tmpLocation.getAccuracy: " +
+            // LogWrapper.v(TAG, "tmpLocation.getAccuracy: " +
             // tmpLocation.getAccuracy());
-            // Log.v(TAG, "getLastCoordinates: " + coordinates + "; "
+            // LogWrapper.v(TAG, "getLastCoordinates: " + coordinates + "; "
             // + new Date(tmpLocation.getTime()));
             // t0 = System.currentTimeMillis() - t0;
-            // Log.v(TAG, t0 + "[ms]");
+            // LogWrapper.v(TAG, t0 + "[ms]");
 
             // dont return default 0,0 values sometimes seen
             if (tmpLocation.getLatitude() != 0f
@@ -184,14 +191,14 @@ public class OTDataSockets {
                 return null;
             }
         } else {
-            Log.v(TAG, t0 + "[ms]");
+            LogWrapper.v(TAG, t0 + "[ms]");
             return null;
         }
     }
 
     public static String getCoordinateTime(final Context appContext) {
         long t0 = System.currentTimeMillis();
-        Log.v(TAG, "getLastCoordinates()");
+        LogWrapper.v(TAG, "getLastCoordinates()");
 
         LocationManager locationManager =
                 (LocationManager) appContext
@@ -205,10 +212,10 @@ public class OTDataSockets {
         if (tmpLocation != null) {
 
             String value = "" + tmpLocation.getTime();
-            // Log.v(TAG, "getLastCoordinates: " + coordinates + "; "
+            // LogWrapper.v(TAG, "getLastCoordinates: " + coordinates + "; "
             // + new Date(tmpLocation.getTime()));
             // t0 = System.currentTimeMillis() - t0;
-            // Log.v(TAG, t0 + "[ms]");
+            // LogWrapper.v(TAG, t0 + "[ms]");
 
             // dont return default 0,0 values sometimes seen
             if (tmpLocation.getLatitude() != 0f
@@ -218,7 +225,7 @@ public class OTDataSockets {
                 return null;
             }
         } else {
-            Log.v(TAG, t0 + "[ms]");
+            LogWrapper.v(TAG, t0 + "[ms]");
             return null;
         }
     }
@@ -226,19 +233,19 @@ public class OTDataSockets {
     public static String getDevice() {
 
         long t0 = System.currentTimeMillis();
-        Log.v(TAG, "getDevice()");
+        LogWrapper.v(TAG, "getDevice()");
 
         String model = android.os.Build.MODEL;
 
         t0 = System.currentTimeMillis() - t0;
-        Log.v(TAG, t0 + "[ms]");
+        LogWrapper.v(TAG, t0 + "[ms]");
         return model;
     }
 
     public static String getIpAddress() {
 
         long t0 = System.currentTimeMillis();
-        Log.v(TAG, "getIpAddress()");
+        LogWrapper.v(TAG, "getIpAddress()");
         try {
             for (Enumeration<NetworkInterface> en =
                     NetworkInterface.getNetworkInterfaces(); en
@@ -248,7 +255,7 @@ public class OTDataSockets {
                         intf.getInetAddresses(); enumIpAddr.hasMoreElements();) {
                     InetAddress inetAddress = enumIpAddr.nextElement();
                     if (!inetAddress.isLoopbackAddress()) {
-                        Log.v(TAG, t0 + "[ms]");
+                        LogWrapper.v(TAG, t0 + "[ms]");
                         return inetAddress.getHostAddress().toString();
                     }
                 }
@@ -285,24 +292,24 @@ public class OTDataSockets {
     public static String getNetworkType(final Context appContext) {
 
         long t0 = System.currentTimeMillis();
-        Log.v(TAG, "getNetworkType()");
+        LogWrapper.v(TAG, "getNetworkType()");
 
         if (cacheType.get("last modified time") != null
                 && (System.currentTimeMillis()
                         - (Long) cacheType.get("last modified time") < NETWORK_CACHE_MS)) {
-            Log.v(TAG, (String) cacheType.get("networkType"));
+            LogWrapper.v(TAG, (String) cacheType.get("networkType"));
 
-            Log.v(TAG, "cache is "
+            LogWrapper.v(TAG, "cache is "
                     + (System.currentTimeMillis() - (Long) cacheType
                             .get("last modified time")) + " [ms] old");
 
             t0 = System.currentTimeMillis() - t0;
-            Log.v(TAG, t0 + "[ms]");
+            LogWrapper.v(TAG, t0 + "[ms]");
 
             return (String) cacheType.get("networkType");
         }
         try {
-            Log.v(TAG, "Getting network type.");
+            LogWrapper.v(TAG, "Getting network type.");
 
             ConnectivityManager connectivityManager =
                     (ConnectivityManager) appContext
@@ -314,7 +321,7 @@ public class OTDataSockets {
                 cacheType.put("networkType", NO_NETWORK);
                 cacheType.put("last modified time", System.currentTimeMillis());
                 t0 = System.currentTimeMillis() - t0;
-                Log.v(TAG, t0 + "[ms]");
+                LogWrapper.v(TAG, t0 + "[ms]");
                 return (String) cacheType.get("networkType");
             }
             String networkInfoTypeName = activeNetworkInfo.getTypeName();
@@ -325,20 +332,20 @@ public class OTDataSockets {
             }
             cacheType.put("networkType", networkInfoTypeName);
             cacheType.put("last modified time", System.currentTimeMillis());
-            Log.v(TAG, (String) cacheType.get("networkType"));
+            LogWrapper.v(TAG, (String) cacheType.get("networkType"));
 
             t0 = System.currentTimeMillis() - t0;
-            Log.v(TAG, t0 + "[ms]");
+            LogWrapper.v(TAG, t0 + "[ms]");
             return (String) cacheType.get("networkType");
         } catch (SecurityException ise) {
-            Log.w(TAG, ise);
+            LogWrapper.w(TAG, ise);
         }
         cacheType.put("networkType", NO_NETWORK);
         cacheType.put("last modified time", System.currentTimeMillis());
-        Log.v(TAG, (String) cacheType.get("networkType"));
+        LogWrapper.v(TAG, (String) cacheType.get("networkType"));
 
         t0 = System.currentTimeMillis() - t0;
-        Log.v(TAG, t0 + "[ms]");
+        LogWrapper.v(TAG, t0 + "[ms]");
         return (String) cacheType.get("networkType");
     }
 
@@ -350,14 +357,14 @@ public class OTDataSockets {
         long t0 = System.currentTimeMillis();
         String release = android.os.Build.VERSION.RELEASE;
         t0 = System.currentTimeMillis() - t0;
-        Log.v(TAG, t0 + "[ms]");
+        LogWrapper.v(TAG, t0 + "[ms]");
         return release;
     }
 
     public static String getScreenHeight(final Context appContext) {
 
         long t0 = System.currentTimeMillis();
-        Log.v(TAG, "getScreenHeight()");
+        LogWrapper.v(TAG, "getScreenHeight()");
         // http://stackoverflow.com/questions/1016896/android-how-to-get-screen-dimensions
         WindowManager windowManager =
                 (WindowManager) appContext
@@ -366,7 +373,7 @@ public class OTDataSockets {
         int height = windowManager.getDefaultDisplay().getHeight();
 
         t0 = System.currentTimeMillis() - t0;
-        Log.v(TAG, t0 + "[ms]");
+        LogWrapper.v(TAG, t0 + "[ms]");
 
         return "" + height;
     }
@@ -374,7 +381,7 @@ public class OTDataSockets {
     public static String getScreenWidth(final Context appContext) {
 
         long t0 = System.currentTimeMillis();
-        Log.v(TAG, "getScreenWidth()");
+        LogWrapper.v(TAG, "getScreenWidth()");
         // http://stackoverflow.com/questions/1016896/android-how-to-get-screen-dimensions
         WindowManager windowManager =
                 (WindowManager) appContext
@@ -383,7 +390,7 @@ public class OTDataSockets {
         // int height = windowManager.getDefaultDisplay().getHeight();
 
         t0 = System.currentTimeMillis() - t0;
-        Log.v(TAG, t0 + "[ms]");
+        LogWrapper.v(TAG, t0 + "[ms]");
 
         return "" + width;
     }
@@ -391,14 +398,14 @@ public class OTDataSockets {
     public static String getUserAgent(final Context appContext) {
 
         long t0 = System.currentTimeMillis();
-        Log.v(TAG, "getUserAgent()");
+        LogWrapper.v(TAG, "getUserAgent()");
         // getting the user agent
         // http://developer.android.com/reference/android/webkit/WebSettings.html#getUserAgentString()
         // http://stackoverflow.com/questions/5638749/get-user-agent-in-my-app-which-doesnt-contain-a-webview
         WebView view = new WebView(appContext);
 
         t0 = System.currentTimeMillis() - t0;
-        Log.v(TAG, t0 + "[ms]");
+        LogWrapper.v(TAG, t0 + "[ms]");
 
         return view.getSettings().getUserAgentString();
     }
@@ -406,7 +413,7 @@ public class OTDataSockets {
     public static String getWifiInfo(final Context appContext) {
 
         long t0 = System.currentTimeMillis();
-        Log.v(TAG, "getWifiInfo()");
+        LogWrapper.v(TAG, "getWifiInfo()");
 
         try {
             WifiManager wifiManager =
@@ -415,14 +422,14 @@ public class OTDataSockets {
 
             WifiInfo wifiInfo = wifiManager.getConnectionInfo();
 
-            Log.v("getWifiInfo(): ", wifiInfo.toString());
+            LogWrapper.v("getWifiInfo(): ", wifiInfo.toString());
             return wifiInfo.toString();
         } catch (SecurityException ise) {
-            Log.w(TAG, ise);
+            LogWrapper.w(TAG, ise);
         }
 
         t0 = System.currentTimeMillis() - t0;
-        Log.v(TAG, t0 + "[ms]");
+        LogWrapper.v(TAG, t0 + "[ms]");
 
         return "unknown";
     }
@@ -436,7 +443,7 @@ public class OTDataSockets {
     // NetworkInfo info = cm.getActiveNetworkInfo();
     //
     // t0 = System.currentTimeMillis() - t0;
-    // Log.v(TAG, t0 + "[ms]");
+    // LogWrapper.v(TAG, t0 + "[ms]");
     //
     // return (info != null);
     // }

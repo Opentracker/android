@@ -52,8 +52,6 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
 
-import android.util.Log;
-
 /**
  * OTSend provides methods for sending key value pairs to Opentracker's logging/
  * analytics engines via HTTP POST requests, and uploading (compressed) files.
@@ -65,6 +63,9 @@ import android.util.Log;
  * 
  * The application will need the following android permissions defined:
  * <uses-permission android:name="android.permission.INTERNET" />
+ * 
+ * @author $Author: eddie $ (latest svn author)
+ * @version $Id: OTSend.java 13593 2011-11-28 19:24:02Z eddie $
  */
 public class OTSend {
 
@@ -111,7 +112,7 @@ public class OTSend {
      */
     private static String getResponseBody(final HttpEntity entity)
             throws IOException, ParseException {
-        Log.v(TAG, "getResponseBody(final HttpEntity entity)");
+        LogWrapper.v(TAG, "getResponseBody(final HttpEntity entity)");
 
         if (entity == null) {
             throw new IllegalArgumentException("HTTP entity may not be null");
@@ -156,7 +157,7 @@ public class OTSend {
      * @return the response as string, null if an exception is caught
      */
     protected static String send(HashMap<String, String> keyValuePairs) {
-        Log.v(TAG, "send(HashMap<String, String> keyValuePairs)");
+        LogWrapper.v(TAG, "send(HashMap<String, String> keyValuePairs)");
 
         // http://www.wikihow.com/Execute-HTTP-POST-Requests-in-Android
         // http://hc.apache.org/httpclient-3.x/tutorial.html
@@ -180,9 +181,9 @@ public class OTSend {
                     (Map.Entry<String, String>) it.next();
             pairs.add(new BasicNameValuePair(pair.getKey(), pair.getValue()));
             if (pair.getKey().equals("ots") || pair.getKey().equals("otui"))
-                Log.v(TAG, pair.getKey() + " = " + pair.getValue());
+                LogWrapper.v(TAG, pair.getKey() + " = " + pair.getValue());
             else
-                Log.v(TAG, pair.getKey() + " = " + pair.getValue());
+                LogWrapper.v(TAG, pair.getKey() + " = " + pair.getValue());
 
         }
 
@@ -198,24 +199,24 @@ public class OTSend {
             // the status returned by the server.
             responseText = getResponseBody(entity);
 
-            Log.v(TAG, "Success url:" + post.getURI());
-            Log.v(TAG, "Success url:" + pairs);
+            LogWrapper.v(TAG, "Success url:" + post.getURI());
+            LogWrapper.v(TAG, "Success url:" + pairs);
             return responseText;
 
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
-            Log.w(TAG, "Failed:" + e);
+            LogWrapper.w(TAG, "Failed:" + e);
         } catch (UnknownHostException e) {
             e.printStackTrace();
-            Log.w(TAG, "Failed:" + e);
+            LogWrapper.w(TAG, "Failed:" + e);
         } catch (IOException e) {
             e.printStackTrace();
-            Log.w(TAG, "Failed:" + e);
+            LogWrapper.w(TAG, "Failed:" + e);
         } catch (ParseException e) {
             e.printStackTrace();
-            Log.w(TAG, "Failed:" + e);
+            LogWrapper.w(TAG, "Failed:" + e);
         }
-        Log.e(TAG, "Got response " + responseText);
+        LogWrapper.e(TAG, "Got response " + responseText);
         return responseText;
     }
 
@@ -229,7 +230,7 @@ public class OTSend {
      *            The file name to append to
      */
     protected static boolean uploadFile(String pathName, String fileName) {
-        Log.v(TAG, "uploadFile(String pathName, String fileName)");
+        LogWrapper.v(TAG, "uploadFile(String pathName, String fileName)");
         return uploadFile(DEFAULT_UPLOAD_SERVER, pathName, fileName);
     }
 
@@ -245,7 +246,7 @@ public class OTSend {
      */
     private static boolean uploadFile(String uploadServer,
             String internalPathName, String fileName) {
-        Log.v(TAG, "uploadFile(uploadServer, pathName, fileName)");
+        LogWrapper.v(TAG, "uploadFile(uploadServer, pathName, fileName)");
 
         String randomFileName = UUID.randomUUID() + ".gz";
 
@@ -309,10 +310,10 @@ public class OTSend {
             dos.close();
 
         } catch (MalformedURLException ex) {
-            Log.w(TAG, "From ServletCom CLIENT REQUEST: " + ex);
+            LogWrapper.w(TAG, "From ServletCom CLIENT REQUEST: " + ex);
             return false;
         } catch (IOException ioe) {
-            Log.w(TAG, "From ServletCom CLIENT REQUEST: " + ioe);
+            LogWrapper.w(TAG, "From ServletCom CLIENT REQUEST: " + ioe);
             return false;
         }
 
@@ -321,13 +322,13 @@ public class OTSend {
             inStream = new DataInputStream(conn.getInputStream());
             String str;
             while ((str = inStream.readLine()) != null) {
-                Log.v(TAG, "Server response: " + str);
+                LogWrapper.v(TAG, "Server response: " + str);
             }
             inStream.close();
             return true;
 
         } catch (IOException ioex) {
-            Log.w(TAG, "Server response: " + ioex);
+            LogWrapper.w(TAG, "Server response: " + ioex);
             return false;
         }
 

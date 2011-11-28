@@ -19,18 +19,21 @@
  */
 package net.opentracker.example;
 
-// note that this example is in the package itself so we do not need to import
-// import net.opentracker.android;
-
 import java.util.HashMap;
 
+//note that this example needs to import net.opentracker.android.OTLogService;
 import net.opentracker.android.OTLogService;
+
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.SeekBar;
+import android.widget.TextView;
 
 /**
  * 
@@ -55,10 +58,19 @@ import android.widget.EditText;
  * Note if you see: DEBUG/SntpClient(69): request time failed:
  * java.net.SocketException: Address family not supported by protocol, then this
  * is android that failed to contact the internet time server, and is normal.
+ * 
+ * Note we implement SeekBar.OnSeekBarChangeListener to work with seek bar
+ * events.
+ * 
+ * @author $Author: eddie $ (latest svn author)
+ * @version $Id: OTExampleActivity.java 13593 2011-11-28 19:24:02Z eddie $
  */
 public class OTExampleActivity extends Activity {
 
     private static final String TAG = OTExampleActivity.class.getName();
+
+    private static final String DEMO_URL =
+            "http://preview.opentracker.net/en/other/login.jsp";
 
     /**
      * A Context is Android's interface to global information about an
@@ -102,6 +114,88 @@ public class OTExampleActivity extends Activity {
     }
 
     /**
+     * A callback that notifies clients when the progress level has been
+     * changed. This includes changes that were initiated by the user through a
+     * touch gesture or arrow key/trackball as well as changes that were
+     * initiated programmatically.
+     * 
+     * Implemented the exampleSeekBar as a private variable, so we don't need to
+     * worry about having this example activity object implement SeekBar
+     * 
+     * http://android-er.blogspot.com
+     * /2009/08/change-background-color-by-seekbar.html cf.
+     * 
+     * http://www.android10.org
+     * /index.php/forums/43-view-layout-a-resource/959-example
+     * -seekbar-to-control-the-volume-of-video-player
+     * 
+     * http://developer.android.com/reference/android/widget/SeekBar.
+     * OnSeekBarChangeListener.html
+     */
+    private SeekBar.OnSeekBarChangeListener exampleSeekBarChangeListener =
+            new SeekBar.OnSeekBarChangeListener() {
+
+                int lastSeekBarValue = 0;
+
+                boolean lastFromUser = false;
+
+                /**
+                 * Notice that we do not log anything in the onProgressChange()
+                 * Doing so would sent too many events to the logging server,
+                 * which should be avoided.
+                 * 
+                 * (non-Javadoc)
+                 * 
+                 * @see android.widget.SeekBar.OnSeekBarChangeListener#onProgressChanged(android.widget.SeekBar,
+                 *      int, boolean)
+                 */
+                public void onProgressChanged(SeekBar seekBar, int progress,
+                        boolean fromUser) {
+                    TextView mProgressText =
+                            (TextView) findViewById(R.id.exampleSeekBarValue);
+
+                    mProgressText.setText("Slider value: " + progress);
+                    lastSeekBarValue = progress;
+                    lastFromUser = fromUser;
+                }
+
+                public void onStartTrackingTouch(SeekBar seekBar) {
+                    // dont do anything wrt logging, no point
+                }
+
+                public void onStopTrackingTouch(SeekBar seekBar) {
+                    // log the value (only when things have stopped)
+                    HashMap<String, String> values =
+                            new HashMap<String, String>();
+
+                    values.put("exampleSeekBarValue", "" + lastSeekBarValue);
+
+                    // adding a second value just for fun
+                    values.put("exampleSeekBarFromUser", "" + lastFromUser);
+                    Log.v(TAG, "clickExampleButton(): " + values);
+                    OTLogService.sendEvent("onStopTrackingTouch() called",
+                            values);
+
+                }
+            };
+
+    /**
+     * Called in the example android project to simulate a event when a check
+     * box is pressed, and open a new browser window.
+     */
+    public void clickExampleViewBehaviorButton(View v) {
+        Log.v(TAG, "clickExampleViewBehaviorButton()");
+
+        OTLogService.sendEvent("button clickExampleViewBehaviorButton");
+
+        // http://stackoverflow.com/questions/2201917/how-can-i-open-a-url-in-androids-web-browser-from-my-application
+        Intent browserIntent =
+                new Intent(Intent.ACTION_VIEW, Uri.parse(DEMO_URL));
+        startActivity(browserIntent);
+
+    }
+
+    /**
      * Called when Android's activity is starting. This is where most
      * initialization should go.
      */
@@ -127,6 +221,11 @@ public class OTExampleActivity extends Activity {
         OTLogService.sendEvent("onCreate() called");
 
         setContentView(R.layout.main);
+
+        // register this object to capture exampleSeekBar events
+        ((SeekBar) findViewById(R.id.exampleSeekBar))
+                .setOnSeekBarChangeListener(exampleSeekBarChangeListener);
+
     }
 
     /**

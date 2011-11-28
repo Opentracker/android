@@ -19,27 +19,25 @@
  */
 package net.opentracker.android;
 
-import android.util.Log;
-
 /**
  * 
  * This class is provided to identify the version and is used to provide
  * debugging information for Opentracker's logging/ analytics engines.
  * 
- * @author $Author: eddie $
- * @version $Id: OTSvnVersion.java 13569 2011-11-22 22:01:15Z eddie $
+ * @author $Author: eddie $ (latest svn author)
+ * @version $Id: OTSvnVersion.java 13595 2011-11-28 19:28:28Z eddie $
  */
-public final class OTSvnVersion { 
+public final class OTSvnVersion {
 
     private static final String TAG = OTSvnVersion.class.getName();
 
     // SVN should fill this out with the latest tag when it's checked out:
     // http://stackoverflow.com/questions/690419/build-and-version-numbering-for-java-projects-ant-cvs-hudson
     // http://stackoverflow.com/questions/2295661/fill-version-tag-with-subversion-in-eclipse
-    private static final String SVN_REVISION_RAW = "$Revision: 13569 $";
+    private static final String SVN_REVISION_RAW = "$Revision: 13595 $";
 
     private static final String SVN_LASTCHANGEDDATE_RAW =
-            "$Date: 2011-11-22 23:01:15 +0100 (Tue, 22 Nov 2011) $";
+            "$Date: 2011-11-28 20:28:28 +0100 (Mon, 28 Nov 2011) $";
 
     private static final String SVN_REVISION =
             SVN_REVISION_RAW.replaceAll("\\$Revision:\\s*", "").replaceAll(
@@ -55,7 +53,7 @@ public final class OTSvnVersion {
      * @return svn's revision number of this file
      */
     public static String getRevision() {
-        Log.v(TAG, "getRevision()");
+        LogWrapper.v(TAG, "getRevision()");
         return SVN_REVISION;
     }
 
@@ -65,7 +63,7 @@ public final class OTSvnVersion {
      * @return svn's last changed date of this file
      */
     public static String getLastChangedDate() {
-        Log.v(TAG, "getLastChangedDate()");
+        LogWrapper.v(TAG, "getLastChangedDate()");
         return SVN_LASTCHANGEDDATE;
     }
 }
