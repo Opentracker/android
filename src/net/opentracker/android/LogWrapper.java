@@ -9,9 +9,6 @@ import android.util.Log;
  * While researching android's logging mechanics, logging seems to be hard to
  * turn off. This class is intended to turn it on or off easily.
  * 
- * If deploying an application on device phone you should want to turn off the
- * verbose logging.
- * 
  * Verbose should never be compiled into an application except during
  * development. Debug logs are compiled in but stripped at runtime. Error,
  * warning and info logs are always kept.
@@ -21,7 +18,7 @@ import android.util.Log;
  * 
  * 
  * @author $Author: eddie $ (latest svn author)
- * @version $Id: LogWrapper.java 13593 2011-11-28 19:24:02Z eddie $
+ * @version $Id: LogWrapper.java 13602 2011-11-29 11:53:50Z eddie $
  */
 public class LogWrapper {
 
@@ -86,10 +83,10 @@ public class LogWrapper {
     // SVN should fill this out with the latest tag when it's checked out:
     // http://stackoverflow.com/questions/690419/build-and-version-numbering-for-java-projects-ant-cvs-hudson
     // http://stackoverflow.com/questions/2295661/fill-version-tag-with-subversion-in-eclipse
-    private static final String SVN_REVISION_RAW = "$Revision: 13593 $";
+    private static final String SVN_REVISION_RAW = "$Revision: 13602 $";
 
     private static final String SVN_LASTCHANGEDDATE_RAW =
-            "$Date: 2011-11-28 20:24:02 +0100 (Mon, 28 Nov 2011) $";
+            "$Date: 2011-11-29 12:53:50 +0100 (Tue, 29 Nov 2011) $";
 
     private static final String SVN_REVISION =
             SVN_REVISION_RAW.replaceAll("\\$Revision:\\s*", "").replaceAll(
