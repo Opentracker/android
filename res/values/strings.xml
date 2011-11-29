@@ -3,8 +3,8 @@
     <string name="app_name">Opentracker\'s Android Tracking Demo App</string>
     <string name="title">Start testing, try tracking a tag:</string>
     <string name="exampleButton">Send tag</string>
-    <string name="exampleCheckBox">Click to generate a tracking event</string>
+    <string name="exampleCheckBox">Tap to generate a tracking event</string>
     <string name="exampleClickSilde">Move slider to generate a tracking event:</string>
     <string name="exampleEditText">[enter test msg]</string>
-    <string name="exampleViewBehaviorButton">Click to view your behavior tracking in new browser window.</string>
+    <string name="exampleViewBehaviorButton">Tap to see your activity iStream</string>
 </resources>
