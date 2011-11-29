@@ -37,7 +37,7 @@ import android.util.Log;
  * logging/ analytics engines for an Android device.
  * 
  * @author $Author: eddie $ (latest svn author)
- * @version $Id: OTLogService.java 13595 2011-11-28 19:28:28Z eddie $
+ * @version $Id: OTLogService.java 13605 2011-11-29 12:34:13Z eddie $
  */
 public class OTLogService {
 
@@ -64,7 +64,7 @@ public class OTLogService {
     private static OTFileUtils otFileUtil;
 
     // the time to lapse before creating a new session
-    private static final int sessionLapseTimeMs = 5 * 30 * 1000; // m x s x ms
+    private static final int sessionLapseTimeMs = 30 * 60 * 1000; // m x s x ms
 
     private static final String TAG = OTLogService.class.getName();
 
