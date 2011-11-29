@@ -18,7 +18,7 @@ import android.util.Log;
  * 
  * 
  * @author $Author: eddie $ (latest svn author)
- * @version $Id: LogWrapper.java 13602 2011-11-29 11:53:50Z eddie $
+ * @version $Id: LogWrapper.java 13603 2011-11-29 11:55:42Z eddie $
  */
 public class LogWrapper {
 
@@ -78,41 +78,4 @@ public class LogWrapper {
         }
     }
 
-    private static final String TAG = OTSvnVersion.class.getName();
-
-    // SVN should fill this out with the latest tag when it's checked out:
-    // http://stackoverflow.com/questions/690419/build-and-version-numbering-for-java-projects-ant-cvs-hudson
-    // http://stackoverflow.com/questions/2295661/fill-version-tag-with-subversion-in-eclipse
-    private static final String SVN_REVISION_RAW = "$Revision: 13602 $";
-
-    private static final String SVN_LASTCHANGEDDATE_RAW =
-            "$Date: 2011-11-29 12:53:50 +0100 (Tue, 29 Nov 2011) $";
-
-    private static final String SVN_REVISION =
-            SVN_REVISION_RAW.replaceAll("\\$Revision:\\s*", "").replaceAll(
-                    "\\s*\\$", "");
-
-    private static final String SVN_LASTCHANGEDDATE =
-            SVN_LASTCHANGEDDATE_RAW.replaceAll("\\$LastChangedDate:\\s*", "")
-                    .replaceAll("\\s*\\$", "");
-
-    /**
-     * Gets the revision number of this file in Subversion
-     * 
-     * @return svn's revision number of this file
-     */
-    public static String getRevision() {
-        LogWrapper.v(TAG, "getRevision()");
-        return SVN_REVISION;
-    }
-
-    /**
-     * Gets the last changed date of this file in Subversion
-     * 
-     * @return svn's last changed date of this file
-     */
-    public static String getLastChangedDate() {
-        LogWrapper.v(TAG, "getLastChangedDate()");
-        return SVN_LASTCHANGEDDATE;
-    }
 }
