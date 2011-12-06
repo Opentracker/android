@@ -41,7 +41,7 @@ import android.content.Context;
  * Opentracker's OTLogging/ analytics engines.
  * 
  * @author $Author: eddie $ (latest svn author)
- * @version $Id: OTFileUtils.java 13593 2011-11-28 19:24:02Z eddie $
+ * @version $Id: OTFileUtils.java 13632 2011-12-06 11:08:52Z eddie $
  */
 public class OTFileUtils {
 
@@ -204,7 +204,24 @@ public class OTFileUtils {
     }
 
     /**
-     * Method to empty the contents of a file (removes and recreates)
+     * Method to empty the contents of a file (writes zero bytes cf unix 'cat
+     * /dev/null > emptyFile') in the sessionStateDirectory "/OTState/", if it
+     * doesn't exist, then the file is created with the makeFile method.
+     * 
+     * 
+     * @param fileName
+     *            The file name to empty
+     * @throws IOException
+     */
+    public void emptyFile(String fileName) throws IOException {
+        LogWrapper.v(TAG, "emptyFile()");
+        emptyFile(sessionStateDirectory, fileName);
+    }
+
+    /**
+     * Method to empty the contents of a file (writes zero bytes cf unix 'cat
+     * /dev/null > emptyFile') ,if it doesn't exist, then the file is created
+     * with the makeFile method.
      * 
      * @param pathName
      *            The path to use relative to the apps context, eg. "/OTUpload/"
@@ -212,7 +229,7 @@ public class OTFileUtils {
      *            The file name to empty
      * @throws IOException
      */
-    public void emptyFile(String pathName, String fileName) {
+    public void emptyFile(String pathName, String fileName) throws IOException {
         long t0 = System.currentTimeMillis();
         LogWrapper.v(TAG, "emptyFile()");
         if (pathName == null || fileName == null) {
@@ -230,9 +247,11 @@ public class OTFileUtils {
             erasor.close();
         } catch (FileNotFoundException e) {
             // e.printStackTrace();
+            makeFile(pathName, fileName);
             LogWrapper.w(TAG, "FileNotFoundException: " + e);
         } catch (IOException e) {
             // e.printStackTrace();
+            makeFile(pathName, fileName);
             LogWrapper.w(TAG, "IOException: " + e);
         }
 
@@ -388,12 +407,13 @@ public class OTFileUtils {
                 content.append(line + LINE_SEPARATOR);
             }
 
-            LogWrapper.v(TAG, "The following data has been read from "
-                    + internalPath + fileName + ": "
-                    + content.toString().replaceAll("\0", "").trim());
-
+            String result = content.toString().replaceAll("\0", "").trim();
             reader.close();
-            return content.toString().replaceAll("\0", "").trim();
+
+            LogWrapper.v(TAG, "The following data has been read from "
+                    + internalPath + fileName + ": " + result);
+
+            return result;
 
         } catch (FileNotFoundException e) {
             LogWrapper.w(TAG, "File not found: " + e.getMessage());
