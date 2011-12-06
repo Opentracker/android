@@ -37,7 +37,7 @@ import android.util.Log;
  * logging/ analytics engines for an Android device.
  * 
  * @author $Author: eddie $ (latest svn author)
- * @version $Id: OTLogService.java 13605 2011-11-29 12:34:13Z eddie $
+ * @version $Id: OTLogService.java 13633 2011-12-06 11:10:32Z eddie $
  */
 public class OTLogService {
 
@@ -535,6 +535,13 @@ public class OTLogService {
                     currentSessionStartUnixTimestamp;
             currentSessionStartUnixTimestamp = currentUnixTimestampMs;
             sessionCount++;
+
+            // empty the file
+            try {
+                otFileUtil.emptyFile("otpe");
+            } catch (IOException e) {
+                LogWrapper.e(TAG, "Empty file creation did not work:" + e);
+            }
         }
 
         otSessionData =
@@ -675,8 +682,35 @@ public class OTLogService {
             keyValuePairs.put("sw", OTDataSockets.getScreenWidth(appContext));
             keyValuePairs.put("app version", OTDataSockets
                     .getAppVersion(appContext));
-            keyValuePairs.put("lc", "http://app.opentracker.net/" + appName
-                    + "/" + eventName.replace('/', '.'));
+
+            String lc =
+                    "http://app.opentracker.net/" + appName + "/"
+                            + eventName.replace('/', '.');
+
+            keyValuePairs.put("lc", lc);
+
+            // add this location as a previous event. The otpe key is used to
+            // keep track of the previous event. This event is needed to measure
+            // the amount of time the previous event has taken. This is
+            // calculated from getting the current event's timestamp and
+            // substracking the previous event's timestamp on the
+            // log.opentracker.net server"
+            String otpe = "";
+            try {
+                otpe = otFileUtil.readFile("otpe");
+            } catch (IOException e) {
+                LogWrapper.i(TAG, "Could not read previous event: " + e);
+            }
+            if (otpe != null && !otpe.isEmpty()) {
+                keyValuePairs.put("otpe", otpe);
+            }
+
+            try {
+                otFileUtil.writeFile("otpe", lc);
+            } catch (IOException e) {
+                LogWrapper.i(TAG, "Could not write previous event: " + e);
+            }
+
             keyValuePairs.put("revision", OTSvnVersion.getRevision());
 
             // debug
