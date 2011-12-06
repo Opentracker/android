@@ -37,7 +37,7 @@ import android.util.Log;
  * logging/ analytics engines for an Android device.
  * 
  * @author $Author: eddie $ (latest svn author)
- * @version $Id: OTLogService.java 13633 2011-12-06 11:10:32Z eddie $
+ * @version $Id: OTLogService.java 13634 2011-12-06 11:54:47Z eddie $
  */
 public class OTLogService {
 
@@ -701,7 +701,7 @@ public class OTLogService {
             } catch (IOException e) {
                 LogWrapper.i(TAG, "Could not read previous event: " + e);
             }
-            if (otpe != null && !otpe.isEmpty()) {
+            if (otpe != null && otpe.length() > 0) {
                 keyValuePairs.put("otpe", otpe);
             }
 
@@ -740,9 +740,9 @@ public class OTLogService {
                 keyValuePairs.put("locale", locale);
             }
 
-            String isp = OTDataSockets.getCarrier(appContext);
-            if (isp != null) {
-                keyValuePairs.put("isp", isp);
+            String carrier = OTDataSockets.getCarrier(appContext);
+            if (carrier != null) {
+                keyValuePairs.put("carrier", carrier);
             }
 
             if (appendSessionStateData) {
