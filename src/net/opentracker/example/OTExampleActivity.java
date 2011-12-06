@@ -63,7 +63,7 @@ import android.widget.TextView;
  * events.
  * 
  * @author $Author: eddie $ (latest svn author)
- * @version $Id: OTExampleActivity.java 13593 2011-11-28 19:24:02Z eddie $
+ * @version $Id: OTExampleActivity.java 13634 2011-12-06 11:54:47Z eddie $
  */
 public class OTExampleActivity extends Activity {
 
@@ -216,7 +216,7 @@ public class OTExampleActivity extends Activity {
         // make sure to comment this out if you are not testing
         // OTLogService.setDirectSend(true);
 
-        // Record an event with the title "Activity started", but you can call
+        // Record an event with the title "onCreate() called", but you can call
         // it anything you want
         OTLogService.sendEvent("onCreate() called");
 
@@ -241,8 +241,9 @@ public class OTExampleActivity extends Activity {
         super.onPause();
         Log.v(TAG, "onPause()");
         OTLogService.sendEvent("onPause() called");
-        // uploads the events. The onPause method is
-        // guaranteed to be called in the life cycle of an Android App.
+        // uploads the file containing the logged events. The onPause method is
+        // guaranteed to be called in the life cycle of an Android App, so we
+        // are guaranteed the events log file are uploaded
         OTLogService.onPause();
     }
 
@@ -254,8 +255,9 @@ public class OTExampleActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        Log.v(TAG, "onResume()");
-        OTLogService.sendEvent("onResume() called");
+        // No real need to log this event, but you can if you need to, want to
+        // Log.v(TAG, "onResume()");
+        // OTLogService.sendEvent("onResume() called");
     }
 
 }
