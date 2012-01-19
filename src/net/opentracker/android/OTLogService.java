@@ -37,7 +37,7 @@ import android.util.Log;
  * logging/ analytics engines for an Android device.
  * 
  * @author $Author: eddie $ (latest svn author)
- * @version $Id: OTLogService.java 13903 2012-01-19 10:06:01Z eddie $
+ * @version $Id: OTLogService.java 13909 2012-01-19 11:30:44Z eddie $
  */
 public class OTLogService {
 
@@ -377,7 +377,7 @@ public class OTLogService {
         long firstSessionStartUnixTimestamp = currentUnixTimestampMs;
         long previousSessionStartUnixTimestamp = currentUnixTimestampMs;
         long currentSessionStartUnixTimestamp = currentUnixTimestampMs;
-        int sessionCount = 1;
+        int sessionCount = 0;
         int lifeTimeEventCount = 1;
 
         if (otUserData != null) {
@@ -442,7 +442,7 @@ public class OTLogService {
                     firstSessionStartUnixTimestamp = currentUnixTimestampMs;
                     previousSessionStartUnixTimestamp = currentUnixTimestampMs;
                     currentSessionStartUnixTimestamp = currentUnixTimestampMs;
-                    sessionCount = 1;
+                    sessionCount = 0;
                     lifeTimeEventCount = 1;
 
                 }
