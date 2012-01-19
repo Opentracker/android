@@ -37,7 +37,7 @@ import android.util.Log;
  * logging/ analytics engines for an Android device.
  * 
  * @author $Author: eddie $ (latest svn author)
- * @version $Id: OTLogService.java 13634 2011-12-06 11:54:47Z eddie $
+ * @version $Id: OTLogService.java 13903 2012-01-19 10:06:01Z eddie $
  */
 public class OTLogService {
 
@@ -369,8 +369,8 @@ public class OTLogService {
             OTSend.send(logMap);
         }
 
-        // create default/ initial user data
-        int randomNumberClient = (int) (1000 * Math.random());
+        // create default/ initial user data (six digits)
+        int randomNumberClient = (int) (1000000 * Math.random());
 
         long currentUnixTimestampMs = System.currentTimeMillis();
 
