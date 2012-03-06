@@ -37,11 +37,11 @@ import android.util.Log;
  * logging/ analytics engines for an Android device.
  * 
  * @author $Author: eddie $ (latest svn author)
- * @version $Id: OTLogService.java 13909 2012-01-19 11:30:44Z eddie $
+ * @version $Id: OTLogService.java 14127 2012-03-06 15:55:24Z eddie $
  */
 public class OTLogService {
 
-    private static final String address = "http://LogWrapper.opentracker.net/";
+    private static final String address = "http://log.opentracker.net/";
 
     private static Context appContext;
 
