@@ -37,7 +37,7 @@ import android.util.Log;
  * logging/ analytics engines for an Android device.
  * 
  * @author $Author: eddie $ (latest svn author)
- * @version $Id: OTLogService.java 14127 2012-03-06 15:55:24Z eddie $
+ * @version $Id: OTLogService.java 14155 2012-03-07 21:36:38Z eddie $
  */
 public class OTLogService {
 
@@ -687,7 +687,16 @@ public class OTLogService {
                     "http://app.opentracker.net/" + appName + "/"
                             + eventName.replace('/', '.');
 
-            keyValuePairs.put("lc", lc);
+            if (keyValuePairs.get("lc") == null
+                    && keyValuePairs.get("url") == null) {
+                // no urls defined, use generate url
+                keyValuePairs.put("lc", lc);
+            } else {
+                if (keyValuePairs.get("lc") != null)
+                    lc = keyValuePairs.get("lc");
+                else
+                    lc = keyValuePairs.get("url");
+            }
 
             // add this location as a previous event. The otpe key is used to
             // keep track of the previous event. This event is needed to measure
