@@ -37,7 +37,7 @@ import android.util.Log;
  * logging/ analytics engines for an Android device.
  * 
  * @author $Author: eddie $ (latest svn author)
- * @version $Id: OTLogService.java 14171 2012-03-08 15:32:37Z eddie $
+ * @version $Id: OTLogService.java 14176 2012-03-08 16:03:11Z eddie $
  */
 public class OTLogService {
 
@@ -894,6 +894,15 @@ public class OTLogService {
      */
     public static void setAppServer(String appServer) {
         OTLogService.appServer = appServer;
+    }
+
+    public static void reset() {
+        try {
+            LogWrapper.w(TAG, "resetting everything");
+            otFileUtil.resetAll();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     // public static void uploadData(HashMap<String, String> keyValuePairs)

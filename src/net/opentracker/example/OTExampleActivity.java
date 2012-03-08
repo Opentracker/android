@@ -93,7 +93,7 @@ public class OTExampleActivity extends Activity {
         EditText mEdit = (EditText) findViewById(R.id.exampleEditText);
 
         values.put("exampleEditText", mEdit.getText().toString());
-        
+
         // send a custom url to be rendered in the opentracker user interface
         values.put("url", "http://yahoo.com");
 
@@ -215,6 +215,9 @@ public class OTExampleActivity extends Activity {
         // Initiate opentracker's logging service, with the Context and
         // your-registered-app-name
         OTLogService.onCreate(appContext, "your-registered-app-name");
+
+        // uncomment to reset session/ user data for opentracker.
+        // OTLogService.reset();
 
         // to test things real-time always send data directly to logging service
         // make sure to comment this out if you are not testing
