@@ -37,7 +37,7 @@ import android.util.Log;
  * logging/ analytics engines for an Android device.
  * 
  * @author $Author: eddie $ (latest svn author)
- * @version $Id: OTLogService.java 14155 2012-03-07 21:36:38Z eddie $
+ * @version $Id: OTLogService.java 14168 2012-03-08 14:54:47Z eddie $
  */
 public class OTLogService {
 
@@ -46,6 +46,8 @@ public class OTLogService {
     private static Context appContext;
 
     private static String appName;
+
+    private static String appServer = "app.opentracker.net";
 
     // used for testing
     private static Boolean directSend = false;
@@ -677,25 +679,36 @@ public class OTLogService {
             keyValuePairs.put("platform", OTDataSockets.getPlatform());
             keyValuePairs.put("platform version", OTDataSockets
                     .getPlatformVersion());
+
+            if (!keyValuePairs.containsKey("browser"))
+                keyValuePairs.put("browser", "Android Native App");
+
+            if (!keyValuePairs.containsKey("browser version"))
+                keyValuePairs.put("browser version", OTDataSockets
+                        .getAppVersion(appContext));
+
             keyValuePairs.put("device", OTDataSockets.getDevice());
             keyValuePairs.put("sh", OTDataSockets.getScreenHeight(appContext));
             keyValuePairs.put("sw", OTDataSockets.getScreenWidth(appContext));
             keyValuePairs.put("app version", OTDataSockets
                     .getAppVersion(appContext));
 
-            String lc =
-                    "http://app.opentracker.net/" + appName + "/"
-                            + eventName.replace('/', '.');
-
-            if (keyValuePairs.get("lc") == null
-                    && keyValuePairs.get("url") == null) {
-                // no urls defined, use generate url
+            String lc;
+            if (keyValuePairs.get("lc") != null) {
+                lc = keyValuePairs.get("lc");
+            } else if (keyValuePairs.get("url") != null) {
+                lc = keyValuePairs.get("url");
+                keyValuePairs.remove("url");
                 keyValuePairs.put("lc", lc);
             } else {
-                if (keyValuePairs.get("lc") != null)
-                    lc = keyValuePairs.get("lc");
-                else
-                    lc = keyValuePairs.get("url");
+                if (appServer.isEmpty()) {
+                    lc = "";
+                } else {
+                    lc =
+                            "http://" + appServer + "/" + appName + "#"
+                                    + eventName.replace('/', '.');
+                }
+                keyValuePairs.put("lc", lc);
             }
 
             // add this location as a previous event. The otpe key is used to
@@ -852,6 +865,37 @@ public class OTLogService {
      */
     public static void setDirectSend(boolean directSend) {
         OTLogService.directSend = directSend;
+    }
+
+    /**
+     * Sets the default app server displayed in the urls Opentracker user
+     * interface. By default this looks like this:
+     * http://app.opentracker.net/your-registered-app-name#title
+     * 
+     * If this method is called it will become:
+     * http://appServer/your-registered-app-name#title
+     * 
+     * This behavior van be turned off by supplying an empty string ("").
+     * Opentracker will then not render the url in the interface.
+     * 
+     * The url can also be overridden per event by supplying a map with a "lc"
+     * key defined:
+     * 
+     * <pre>
+     * Map map = new HashMap();
+     * map.put(&quot;lc&quot;, &quot;http://app.mydomain.com/anything/test.html&quot;);
+     * sendEvent(&quot;title&quot;, map);
+     * </pre>
+     * 
+     * If this is done it will become:
+     * http://app.mydomain.com/anything/test.html
+     * 
+     * 
+     * @param appServer
+     *            the url appServer to be displayed for each event.
+     */
+    public static void setAppServer(String appServer) {
+        OTLogService.appServer = appServer;
     }
 
     // public static void uploadData(HashMap<String, String> keyValuePairs)

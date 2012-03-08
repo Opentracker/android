@@ -43,7 +43,7 @@ import android.webkit.WebView;
  * devices for Opentracker's logging/ analytics engines.
  * 
  * @author $Author: eddie $ (latest svn author)
- * @version $Id: OTDataSockets.java 13593 2011-11-28 19:24:02Z eddie $
+ * @version $Id: OTDataSockets.java 14165 2012-03-08 14:32:31Z eddie $
  */
 public class OTDataSockets {
 
@@ -393,6 +393,13 @@ public class OTDataSockets {
         LogWrapper.v(TAG, t0 + "[ms]");
 
         return "" + width;
+    }
+
+    /**
+     * TODO: android does not have a way to detect the color depth.
+     */
+    public static String getScreenColors(final Context appContext) {
+        return null;
     }
 
     public static String getUserAgent(final Context appContext) {
