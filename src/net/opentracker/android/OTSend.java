@@ -65,7 +65,7 @@ import org.apache.http.util.EntityUtils;
  * <uses-permission android:name="android.permission.INTERNET" />
  * 
  * @author $Author: eddie $ (latest svn author)
- * @version $Id: OTSend.java 13593 2011-11-28 19:24:02Z eddie $
+ * @version $Id: OTSend.java 14171 2012-03-08 15:32:37Z eddie $
  */
 public class OTSend {
 
@@ -85,7 +85,7 @@ public class OTSend {
      */
     private static final int HTTP_SOCKET_TIMEOUT = 3000;
 
-    private static final String DEFAULT_LOG_URL = "http://log.opentracker.net/";
+    public static final String DEFAULT_LOG_URL = "http://log.opentracker.net/";
 
     private static final String DEFAULT_UPLOAD_SERVER =
             "http://upload.opentracker.net/upload/upload.jsp";

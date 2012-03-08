@@ -63,7 +63,7 @@ import android.widget.TextView;
  * events.
  * 
  * @author $Author: eddie $ (latest svn author)
- * @version $Id: OTExampleActivity.java 13634 2011-12-06 11:54:47Z eddie $
+ * @version $Id: OTExampleActivity.java 14170 2012-03-08 15:25:02Z eddie $
  */
 public class OTExampleActivity extends Activity {
 
@@ -93,6 +93,10 @@ public class OTExampleActivity extends Activity {
         EditText mEdit = (EditText) findViewById(R.id.exampleEditText);
 
         values.put("exampleEditText", mEdit.getText().toString());
+        
+        // send a custom url to be rendered in the opentracker user interface
+        values.put("url", "http://yahoo.com");
+
         Log.v(TAG, "clickExampleButton(): " + values);
 
         // Record an event with the title "button clickExampleButton", you
