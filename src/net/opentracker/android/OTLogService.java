@@ -37,11 +37,9 @@ import android.util.Log;
  * logging/ analytics engines for an Android device.
  * 
  * @author $Author: eddie $ (latest svn author)
- * @version $Id: OTLogService.java 14168 2012-03-08 14:54:47Z eddie $
+ * @version $Id: OTLogService.java 14171 2012-03-08 15:32:37Z eddie $
  */
 public class OTLogService {
-
-    private static final String address = "http://log.opentracker.net/";
 
     private static Context appContext;
 
@@ -110,7 +108,7 @@ public class OTLogService {
         // + "&";
         // }
 
-        String url = address + "?" + urlQuery;
+        String url = OTSend.DEFAULT_LOG_URL + "?" + urlQuery;
         LogWrapper.i(TAG, "appending url:" + url);
         try {
             otFileUtil.makeFile(OTFileUtils.UPLOAD_PATH, "fileToSend");
@@ -690,7 +688,7 @@ public class OTLogService {
             keyValuePairs.put("device", OTDataSockets.getDevice());
             keyValuePairs.put("sh", OTDataSockets.getScreenHeight(appContext));
             keyValuePairs.put("sw", OTDataSockets.getScreenWidth(appContext));
-            keyValuePairs.put("app version", OTDataSockets
+            keyValuePairs.put("version name", OTDataSockets
                     .getAppVersion(appContext));
 
             String lc;
@@ -701,7 +699,7 @@ public class OTLogService {
                 keyValuePairs.remove("url");
                 keyValuePairs.put("lc", lc);
             } else {
-                if (appServer.isEmpty()) {
+                if (appServer.equals("")) {
                     lc = "";
                 } else {
                     lc =

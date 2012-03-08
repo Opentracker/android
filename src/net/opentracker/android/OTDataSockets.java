@@ -43,7 +43,7 @@ import android.webkit.WebView;
  * devices for Opentracker's logging/ analytics engines.
  * 
  * @author $Author: eddie $ (latest svn author)
- * @version $Id: OTDataSockets.java 14165 2012-03-08 14:32:31Z eddie $
+ * @version $Id: OTDataSockets.java 14172 2012-03-08 15:33:14Z eddie $
  */
 public class OTDataSockets {
 
@@ -63,7 +63,8 @@ public class OTDataSockets {
     public static final String WIFI = "Wi-Fi";
 
     /**
-     * Gets the pretty string for this application's version.
+     * Gets the pretty string for this application's version name as defined in
+     * the xml manifest file.
      * 
      * @param appContext
      *            The context used to examine packages
