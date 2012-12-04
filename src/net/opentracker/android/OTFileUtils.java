@@ -41,7 +41,7 @@ import android.content.Context;
  * Opentracker's OTLogging/ analytics engines.
  * 
  * @author $Author: eddie $ (latest svn author)
- * @version $Id: OTFileUtils.java 13632 2011-12-06 11:08:52Z eddie $
+ * @version $Id: OTFileUtils.java 14175 2012-03-08 15:59:48Z eddie $
  */
 public class OTFileUtils {
 
@@ -462,6 +462,19 @@ public class OTFileUtils {
         LogWrapper.v(TAG, t0 + "[ms]");
 
         return length;
+    }
+
+    /**
+     * Resets all the files that hold the data session/ user data as with a
+     * clean install
+     * 
+     * @throws IOException
+     * 
+     */
+    public void resetAll() throws IOException {
+        emptyFile("otpe");
+        emptyFile("otui");
+        emptyFile("otui");
     }
 
     /**
