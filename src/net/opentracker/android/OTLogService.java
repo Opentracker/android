@@ -1,21 +1,20 @@
 /*
- *  Copyright (C) 2011 Opentracker.net 
+ * Copyright (C) 2011 Opentracker.net
  * 
- *  This library is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU Lesser General Public
- *  License as published by the Free Software Foundation; either
- *  version 2 of the License, or (at your option) any later version.
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2 of the License, or (at your option) any
+ * later version.
  * 
- *  This library is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
  * 
- *  The full license is located at the root of this distribution
- *  in the LICENSE file.
- *
- *  Please report bugs to support@opentracker.net
- *
+ * The full license is located at the root of this distribution in the LICENSE
+ * file.
+ * 
+ * Please report bugs to support@opentracker.net
  */
 
 package net.opentracker.android;
@@ -37,7 +36,7 @@ import android.util.Log;
  * logging/ analytics engines for an Android device.
  * 
  * @author $Author: eddie $ (latest svn author)
- * @version $Id: OTLogService.java 14176 2012-03-08 16:03:11Z eddie $
+ * @version $Id: OTLogService.java 15491 2012-12-04 15:37:01Z eddie $
  */
 public class OTLogService {
 
@@ -88,9 +87,8 @@ public class OTLogService {
         for (Map.Entry<String, String> entry : keyValuePairs.entrySet()) {
             String key = entry.getKey();
             String value = entry.getValue();
-            urlQuery +=
-                    URLEncoder.encode(key) + "=" + URLEncoder.encode(value)
-                            + "&";
+            urlQuery += URLEncoder.encode(key) + "=" + URLEncoder.encode(value)
+                    + "&";
         }
 
         // Iterator<Entry<String, String>> it =
@@ -159,9 +157,8 @@ public class OTLogService {
             long fileSizeBytes = 0;
 
             try {
-                fileSizeBytes =
-                        otFileUtil.getFileSize(OTFileUtils.UPLOAD_PATH,
-                                "fileToSend");
+                fileSizeBytes = otFileUtil.getFileSize(OTFileUtils.UPLOAD_PATH,
+                        "fileToSend");
             } catch (IOException e) {
                 // ignore
             }
@@ -205,15 +202,12 @@ public class OTLogService {
                 // + otFileUtil.listFiles(OTFileUtils.UPLOAD_PATH).length);
 
                 long time1 = System.currentTimeMillis();
-                boolean success =
-                        OTSend.uploadFile(otFileUtil
-                                .getInternalPath(OTFileUtils.UPLOAD_PATH),
-                                "fileToSend.gz");
+                boolean success = OTSend.uploadFile(
+                        otFileUtil.getInternalPath(OTFileUtils.UPLOAD_PATH),
+                        "fileToSend.gz");
 
                 long time2 = System.currentTimeMillis();
-                Log
-                        .v(TAG, "Time taken to upload: " + (time2 - time1)
-                                + " [ms]");
+                Log.v(TAG, "Time taken to upload: " + (time2 - time1) + " [ms]");
                 if (success) {
                     LogWrapper.v(TAG, "Clearing files");
 
@@ -411,14 +405,14 @@ public class OTLogService {
                     // parse the user data
                     randomNumberClient = Integer.parseInt(userData[0]);
 
-                    firstSessionStartUnixTimestamp =
-                            Long.parseLong(userData[1]);
+                    firstSessionStartUnixTimestamp = Long
+                            .parseLong(userData[1]);
 
-                    previousSessionStartUnixTimestamp =
-                            Long.parseLong(userData[2]);
+                    previousSessionStartUnixTimestamp = Long
+                            .parseLong(userData[2]);
 
-                    currentSessionStartUnixTimestamp =
-                            Long.parseLong(userData[3]);
+                    currentSessionStartUnixTimestamp = Long
+                            .parseLong(userData[3]);
 
                     sessionCount = Integer.parseInt(userData[4]);
 
@@ -431,8 +425,7 @@ public class OTLogService {
 
                     LogWrapper.w(TAG, "otui has corrupted data: " + e);
 
-                    HashMap<String, String> logMap =
-                            new HashMap<String, String>();
+                    HashMap<String, String> logMap = new HashMap<String, String>();
                     logMap.put("si", "errors"); // log to error appName
                     logMap.put("message", getStackTrace(e));
                     OTSend.send(logMap);
@@ -483,8 +476,7 @@ public class OTLogService {
                     // <current event view unix timestamp>
 
                     previousEventUnixTimestamp = Long.parseLong(sessionData[3]);
-                    long diff =
-                            (currentUnixTimestampMs - previousEventUnixTimestamp);
+                    long diff = (currentUnixTimestampMs - previousEventUnixTimestamp);
 
                     // LogWrapper.e(TAG, "Got: " + diff + "[ms]");
                     // LogWrapper.e(TAG, "Got currentUnixTimestampMs: "
@@ -515,8 +507,7 @@ public class OTLogService {
 
                     LogWrapper.w(TAG, "ots has corrupted data: " + e);
 
-                    HashMap<String, String> logMap =
-                            new HashMap<String, String>();
+                    HashMap<String, String> logMap = new HashMap<String, String>();
                     logMap.put("si", "errors"); // log to error appName
                     logMap.put("message", getStackTrace(e));
                     OTSend.send(logMap);
@@ -531,8 +522,7 @@ public class OTLogService {
         // do the work, to register new session
         if (isNewSession) {
             LogWrapper.i(TAG, "Updating data with new session.");
-            previousSessionStartUnixTimestamp =
-                    currentSessionStartUnixTimestamp;
+            previousSessionStartUnixTimestamp = currentSessionStartUnixTimestamp;
             currentSessionStartUnixTimestamp = currentUnixTimestampMs;
             sessionCount++;
 
@@ -544,10 +534,9 @@ public class OTLogService {
             }
         }
 
-        otSessionData =
-                sessionEventCount + "." + currentSessionStartUnixTimestamp
-                        + "." + previousEventUnixTimestamp + "."
-                        + currentUnixTimestampMs;
+        otSessionData = sessionEventCount + "."
+                + currentSessionStartUnixTimestamp + "."
+                + previousEventUnixTimestamp + "." + currentUnixTimestampMs;
 
         try {
             // LogWrapper.e(TAG, "Writing session: " + otSessionData);
@@ -573,11 +562,10 @@ public class OTLogService {
         LogWrapper.v(TAG, "ots write: " + otSessionData);
 
         // format the otUserData
-        otUserData =
-                randomNumberClient + "." + firstSessionStartUnixTimestamp + "."
-                        + previousSessionStartUnixTimestamp + "."
-                        + currentSessionStartUnixTimestamp + "." + sessionCount
-                        + "." + lifeTimeEventCount;
+        otUserData = randomNumberClient + "." + firstSessionStartUnixTimestamp
+                + "." + previousSessionStartUnixTimestamp + "."
+                + currentSessionStartUnixTimestamp + "." + sessionCount + "."
+                + lifeTimeEventCount;
 
         // write the otUserData
         try {
@@ -607,6 +595,10 @@ public class OTLogService {
     public static void sendEvent(String eventName,
             HashMap<String, String> keyValuePairs) {
         sendEvent(eventName, keyValuePairs, true);
+    }
+
+    public static void sendEvent(HashMap<String, String> keyValuePairs) {
+        sendEvent(null, keyValuePairs, true);
     }
 
     public static void sendEvent(String eventName,
@@ -654,10 +646,11 @@ public class OTLogService {
 
             if (keyValuePairs == null)
                 keyValuePairs = new HashMap<String, String>();
-
+ 
             // ti is default title tag
             if (eventName == null) {
-                if (keyValuePairs.get("title") == null) {
+                if (keyValuePairs.get("title") == null
+                        && keyValuePairs.get("ti") == null) {
                     keyValuePairs.put("ti", "[No title]");
                 } else {
                     keyValuePairs.put("ti", keyValuePairs.get("title"));
@@ -672,24 +665,24 @@ public class OTLogService {
             // LogWrapper.v(TAG, "eventCount: " + eventCount);
 
             keyValuePairs.put("si", appName);
-            keyValuePairs.put("connection", OTDataSockets
-                    .getNetworkType(appContext));
+            keyValuePairs.put("connection",
+                    OTDataSockets.getNetworkType(appContext));
             keyValuePairs.put("platform", OTDataSockets.getPlatform());
-            keyValuePairs.put("platform version", OTDataSockets
-                    .getPlatformVersion());
+            keyValuePairs.put("platform version",
+                    OTDataSockets.getPlatformVersion());
 
             if (!keyValuePairs.containsKey("browser"))
                 keyValuePairs.put("browser", "Android Native App");
 
             if (!keyValuePairs.containsKey("browser version"))
-                keyValuePairs.put("browser version", OTDataSockets
-                        .getAppVersion(appContext));
+                keyValuePairs.put("browser version",
+                        OTDataSockets.getAppVersion(appContext));
 
             keyValuePairs.put("device", OTDataSockets.getDevice());
             keyValuePairs.put("sh", OTDataSockets.getScreenHeight(appContext));
             keyValuePairs.put("sw", OTDataSockets.getScreenWidth(appContext));
-            keyValuePairs.put("version name", OTDataSockets
-                    .getAppVersion(appContext));
+            keyValuePairs.put("version name",
+                    OTDataSockets.getAppVersion(appContext));
 
             String lc;
             if (keyValuePairs.get("lc") != null) {
@@ -702,9 +695,8 @@ public class OTLogService {
                 if (appServer.equals("")) {
                     lc = "";
                 } else {
-                    lc =
-                            "http://" + appServer + "/" + appName + "#"
-                                    + eventName.replace('/', '.');
+                    lc = "http://" + appServer + "/" + appName + "#"
+                            + eventName.replace('/', '.');
                 }
                 keyValuePairs.put("lc", lc);
             }
@@ -747,12 +739,12 @@ public class OTLogService {
             String location = OTDataSockets.getCoordinateLatitude(appContext);
             if (location != null) {
                 keyValuePairs.put("latitude", location);
-                keyValuePairs.put("longitude", OTDataSockets
-                        .getCoordinateLongitude(appContext));
-                keyValuePairs.put("coordinateAccuracy", OTDataSockets
-                        .getCoordinateAccuracy(appContext));
-                keyValuePairs.put("coordinateTime", OTDataSockets
-                        .getCoordinateTime(appContext));
+                keyValuePairs.put("longitude",
+                        OTDataSockets.getCoordinateLongitude(appContext));
+                keyValuePairs.put("coordinateAccuracy",
+                        OTDataSockets.getCoordinateAccuracy(appContext));
+                keyValuePairs.put("coordinateTime",
+                        OTDataSockets.getCoordinateTime(appContext));
             }
 
             String locale = OTDataSockets.getLocale(appContext);
@@ -774,8 +766,7 @@ public class OTLogService {
                     LogWrapper.w(TAG,
                             "Exception while getting fileName data pairs");
 
-                    HashMap<String, String> logMap =
-                            new HashMap<String, String>();
+                    HashMap<String, String> logMap = new HashMap<String, String>();
                     logMap.put("si", "errors"); // log to error appName
                     logMap.put("message", getStackTrace(e));
                     OTSend.send(logMap);
